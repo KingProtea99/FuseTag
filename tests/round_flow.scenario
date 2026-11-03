@@ -1,4 +1,4 @@
-# Solo player (bot AI via --bot input) + 5 bot seats: countdown, play, swaps happen, players blow up, rounds advance.
+# Graybox map with hide spots and props. Solo player (bot AI via --bot input) + 5 bot seats: countdown, play, swaps happen, players blow up, rounds advance.
 # Update with FuseTag_headless --test <file> --update-expected after rule changes, and check the values still say this.
 seed 7
 tick 0 flow.phase == Countdown
@@ -8,7 +8,10 @@ tick 0 slots[5].bot == true
 tick 3.1s flow.phase == Playing
 tick 3.1s flow.round == 1
 tick 3.1s itSlot == 3
-tick 60s swaps == 6
-tick 120s outCount == 3
+tick 60s swaps == 5
+tick 120s outCount == 2
 tick 200s flow.round == 2
 tick 300s flow.round == 3
+tick 300s hides == 22
+tick 300s founds == 2
+tick 300s shoves == 30

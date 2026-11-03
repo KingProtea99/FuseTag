@@ -36,6 +36,11 @@ void fillHud(const World& world, u32 local, const SeatNames& names, const Player
     const u32 staminaFull = world.tuning.staminaMax.value * world.tuning.staminaRecover.value;
     vm.stamina = mine && staminaFull ? static_cast<f32>(state.slots[local].stamina) / static_cast<f32>(staminaFull) : 1.0f;
     vm.winded = mine && state.slots[local].winded;
+    vm.hidden = playing && mine && state.slots[local].hidden;
+    vm.inSpot = playing && mine && !vm.hidden && state.slots[local].hideSpot != kNoSlot && !state.slots[local].it;
+    const u32 cooldown = world.tuning.shoveCooldown.value;
+    const u32 shoveLeft = mine ? state.slots[local].shove.remaining(state.tick) : 0u;
+    vm.shoveReady = cooldown ? 1.0f - static_cast<f32>(shoveLeft) / static_cast<f32>(cooldown) : 1.0f;
     vm.roundOver = state.flow.phase == MatchPhase::RoundEnd && state.roundWinner != kNoSlot;
     vm.winnerName = state.roundWinner != kNoSlot ? names[state.roundWinner] : std::string{};
 }

@@ -178,7 +178,12 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
         m_juice.applyPost(frame.post, ctx.settings.values().gameplay.flashScale);
     }
     drawScene(m_scene, ctx.models, frame.cameraPos, m_viewTime, out);
-    if (sim().started()) drawWorld(m_frozen ? m_frozenCurrent : sim().world().state, m_pawnAt, m_pawnHas, look, m_juice, ctx.models, out);
+    if (sim().started()) {
+        const WorldState& shown = m_frozen ? m_frozenCurrent : sim().world().state;
+        drawHideSpots(sim().world(), look, m_juice, ctx.models, out);
+        drawProps(m_frozen ? m_frozenPrevious : sim().previous(), shown, m_frozen ? m_frozenAlpha : sim().alpha(), ctx.models, out);
+        drawWorld(shown, m_pawnAt, m_pawnHas, ctx.session.localPlayer(), look, m_juice, ctx.models, out);
+    }
 }
 
 // F1: round state and cheats (sent as confirmed commands, so every peer applies them on the same tick)

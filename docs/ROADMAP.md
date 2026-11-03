@@ -99,7 +99,7 @@ Goal: with graybox art still, a muted video of a round reads clearly: who is it,
 **Camera**
 - [x] Third-person spring-arm camera with wall avoidance (engine virtual cameras), fov widens slightly with speed and sprint.
 - [x] Landing camera dip
-- [ ] Shove recoil (with the shove in M3)
+- [x] Shove recoil (M3: shover stretch, victim fov kick)
 
 **Done check**: record a 3-minute bot round with `--capture` frames; every tag and explosion is visible without sound.
 
@@ -108,17 +108,20 @@ Goal: with graybox art still, a muted video of a round reads clearly: who is it,
 ## M3. Hiding and props
 
 **Rules**
-- [ ] `HideSpot` scene object (area, kind: bush/locker/pile), hide when still inside, reveal on move/item/tag, tagger search after `searchTime`.
-- [ ] Physics props (crates, chairs, barrels, carts) with mass from a table; shove action (cooldown) that pushes players and props.
-- [ ] Bots: runners use hide spots when it is far, it checks spots it passes.
-- [ ] Scenarios: hide/reveal, search pull-out, shove knockback.
+- [x] `HideSpot` scene object (area, kind: bush/locker/pile), hide when still inside, reveal on move/shove/tag, tagger search after `searchTime` (item reveal comes with M4)
+- [x] Physics props (`Prop` scene object, mass per object); shove action (cooldown, stun) that pushes players and props
+- [x] Bots: runners hide when it is far and shove it when caught close; the it bot ignores hidden runners and checks hide spots one by one
+- [x] Scenarios: `round_flow` counts hides, finds and shoves in a bot match; cage scenarios updated for shoving bots
 
 **Feel**
-- [ ] Entering a hide spot: bush wobble spring (scale + rotation), leaves particles, rustle sound; locker door slam with squash on the door.
-- [ ] While hidden: my own character drawn faded with an outline so I know I'm hidden; a calm breathing loop.
-- [ ] Pulled out: "found!" popup, hider pops out with a stretch, bush bursts leaves.
-- [ ] Props: impact sound and dust scaled by impulse; small hit stop when a shove hits a player; tumbling props squash a little on landing.
-- [ ] Shove: wind-up squash, swoosh arc particles, recoil.
+- [x] Entering/leaving a hide spot: spot wobble spring (scale + sway), leaves particles
+- [ ] Rustle and locker slam sounds, a real locker door (M5)
+- [x] While hidden: my own character drawn smaller and pale, "hidden" HUD text; others don't see me
+- [ ] Breathing loop (M5)
+- [x] Found: hider pops up with a stretch, spot bursts with leaves and stars
+- [x] Props: dust on impacts scaled by speed; hit stop when a shove hits me
+- [ ] Impact sounds, props squashing on landing
+- [x] Shove: stretch on the shover, dust burst, victims squash, spin and flash; HUD cooldown bar
 
 ---
 

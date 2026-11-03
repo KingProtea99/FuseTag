@@ -73,6 +73,8 @@ public:
     bool hunterArrow(Vec3& at, mealkit::Quat& rotation, f32& strength) const;
     // Who to watch while I'm out: the it player, else anyone still in
     bool spectateTarget(Vec3& at) const;
+    // Hide spot wobble (scale and tilt) by World::hideSpots index
+    void spotLook(u32 spot, Vec3& scale, mealkit::Quat& rotation) const;
 
 private:
     struct PawnFx {
@@ -112,6 +114,7 @@ private:
     u8 m_local = kNoPlayer;
     bool m_localIt = false;
     Spring m_fov, m_dip;
+    std::vector<Spring> m_spots; // wobble per hide spot
     u32 m_markerSlot = kNoSlot;
     f64 m_markerStart = -1.0;
     f32 m_removeSeconds = 2.0f; // tuning.blastRemove in seconds

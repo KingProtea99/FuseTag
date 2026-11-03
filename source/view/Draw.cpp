@@ -37,6 +37,7 @@ void drawScene(const scene::Scene& scene, asset::ModelCache& models, const Vec3&
     const render::MeshId box = models.boxMesh();
     for (const scene::Entity& e : scene.entities) {
         if (!scene::visibleInGame(e, &reflect::moduleObjectTypes())) continue; // spawn points/areas are invisible in the game
+        if (e.is<Prop>()) continue; // loose props move: drawn from the simulation (drawProps)
         if (e.is(scene::kTypeScatter)) { // view-only instances painted in the editor
             models.addScatter(out, e, eye);
             continue;
@@ -64,14 +65,44 @@ void pawnPositions(const WorldState& previous, const WorldState& current, f32 al
     }
 }
 
+void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juice, asset::ModelCache& models, render::DrawList& out) {
+    const render::MeshId box = models.boxMesh();
+    for (u32 i = 0; i < world.hideSpots.size(); ++i) {
+        const World::HideArea& a = world.hideSpots[i];
+        const Vec3 size = a.max - a.min;
+        Vec3 wobble;
+        Quat tilt;
+        juice.spotLook(i, wobble, tilt);
+        const Vec3 drawn{size.x * wobble.x, size.y * wobble.y, size.z * wobble.z};
+        const Vec3 center{(a.min.x + a.max.x) * 0.5f, a.min.y + drawn.y * 0.5f, (a.min.z + a.max.z) * 0.5f};
+        const Color c = a.kind == HideKind::Bush ? look.juice.bushColor : a.kind == HideKind::Locker ? look.juice.lockerColor : look.juice.pileColor;
+        out.add(box, {center, c.value, tilt, drawn, 0});
+    }
+}
+
+void drawProps(const WorldState& previous, const WorldState& current, f32 alpha, asset::ModelCache& models, render::DrawList& out) {
+    const render::MeshId box = models.boxMesh();
+    for (auto [id, prop] : current.props) {
+        const PropBox* before = previous.props.get(id);
+        const Vec3 at = before ? lerp(before->position, prop.position, alpha) : prop.position;
+        const Quat rot = before ? nlerp(before->rotation, prop.rotation, alpha) : prop.rotation;
+        out.add(box, {at, prop.color, rot, prop.halfExtents * 2.0f, 0});
+    }
+}
+
 void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayers>& at, const std::array<bool, net::kMaxPlayers>& has,
-               const ViewTuning& look, const Juice& juice, asset::ModelCache& models, render::DrawList& out) {
+               u32 local, const ViewTuning& look, const Juice& juice, asset::ModelCache& models, render::DrawList& out) {
     const render::MeshId box = models.boxMesh();
     for (u32 slot = 0; slot < net::kMaxPlayers; ++slot) {
         if (!has[slot]) continue;
         const PlayerSlot& p = current.slots[slot];
         const Color color = p.out ? look.outColor : look.playerColors[slot % look.playerColors.size()];
-        const PawnLook l = juice.look(slot);
+        if (p.hidden && slot != local) continue; // others don't see a hidden runner
+        PawnLook l = juice.look(slot);
+        if (p.hidden) { // my own hidden character: smaller and pale so I know I'm hidden
+            l.scale = l.scale * look.juice.hiddenSelfScale;
+            l.flash = std::max(l.flash, look.juice.hiddenSelfFlash);
+        }
         const Vec3 size{look.pawnSize.x * l.scale.x, look.pawnSize.y * l.scale.y, look.pawnSize.z * l.scale.z};
         // Squash about the feet: the box center moves down as it squashes
         const Vec3 center = at[slot] + l.offset + Vec3{0.0f, (size.y - look.pawnSize.y) * 0.5f, 0.0f};

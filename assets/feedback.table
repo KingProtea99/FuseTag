@@ -58,3 +58,33 @@ flashColor #FF3020
 
 row RoundWin
 effect star
+
+row Hide
+effect leaves
+
+row Unhide
+effect leaves
+
+row Found
+effect leaves
+shake 0.1
+shakeRange 12
+
+row Found.star
+effect star
+
+row Shove
+effect dust
+shake 0.06
+shakeRange 10
+
+row ShoveHit.local
+players local
+shake 0.18
+shakeSeconds 0.2
+hitStop 0.05
+
+row Impact
+effect dust
+strengthFrom value
+strengthFull 8

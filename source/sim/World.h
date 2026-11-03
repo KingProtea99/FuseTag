@@ -35,6 +35,7 @@ using mealkit::sim::TickTimer;
 
 inline constexpr u8 kButtonJump = 1;
 inline constexpr u8 kButtonSprint = 2;
+inline constexpr u8 kButtonShove = 4;
 inline constexpr u8 kButtonAuto = 0x80; // the bot AI drives this player (--bot, headless tests); part of the input, so deterministic
 
 inline constexpr u32 kNoSlot = 0xFFFFFFFFu;
@@ -56,6 +57,16 @@ MEALKIT_STRUCT(Pawn) {
     MEALKIT_FIELD(Vec3, velocity, {}, "속도");
     MEALKIT_FIELD(mealkit::sim::Mover, mover, {}, "이동 (모드, 물리 바디, 땅에 닿음)");
     MEALKIT_FIELD(f32, fallSpeed, 0.0f, "공중에서 가장 빠른 낙하 속도 (m/s, 착지 이벤트)");
+};
+
+// A loose physics box from a scene Prop object (the body's state is in the physics hash; position/rotation are copied for the view)
+MEALKIT_STRUCT(PropBox) {
+    MEALKIT_FIELD(Vec3, position, {}, "위치");
+    MEALKIT_FIELD(mealkit::Quat, rotation, {}, "회전");
+    MEALKIT_FIELD(Vec3, halfExtents, {}, "반 크기");
+    MEALKIT_FIELD(u32, color, 0, "색 (씬 물체 색)");
+    MEALKIT_FIELD(f32, mass, 0.0f, "질량 (kg)");
+    MEALKIT_FIELD(mealkit::physics::BodyId, body, mealkit::physics::kInvalidBody, "물리 바디");
 };
 
 // A seat in the match: a person or a bot. Persists through the match (a person who leaves is replaced by a bot).
@@ -80,12 +91,22 @@ MEALKIT_STRUCT(PlayerSlot) {
     MEALKIT_FIELD(bool, winded, false, "지침 (가득 찰 때까지 못 달림)");
     MEALKIT_FIELD(bool, sprinting, false, "달리는 중");
     MEALKIT_FIELD(u32, tags, 0, "이번 매치에 잡은 횟수");
+    MEALKIT_FIELD(bool, hidden, false, "숨음");
+    MEALKIT_FIELD(u32, hideSpot, kNoSlot, "있는 숨는 곳 (World::hideSpots 번호)");
+    MEALKIT_FIELD(u32, stillTicks, 0, "숨는 곳에서 가만히 있은 틱");
+    MEALKIT_FIELD(u32, searched, 0, "술래가 옆에 있은 틱 (숨었을 때)");
+    MEALKIT_FIELD(TickTimer, shove, {}, "밀치기 재사용");
+    MEALKIT_FIELD(TickTimer, stunned, {}, "밀려서 조종 못 함");
     // Bot brain (bots and players with kButtonAuto)
     MEALKIT_FIELD(TickTimer, botThink, {}, "봇 다음 판단");
     MEALKIT_FIELD(bool, botRepath, false, "봇 길찾기 대기");
     MEALKIT_FIELD(Vec3, botGoal, {}, "봇 목표 지점");
     MEALKIT_FIELD(u32, botTarget, kNoSlot, "봇 술래의 추격 대상");
     MEALKIT_FIELD(bool, botSprint, false, "봇 달리기");
+    MEALKIT_FIELD(bool, botHiding, false, "봇이 숨는 곳으로 가는 중");
+    MEALKIT_FIELD(bool, botShove, false, "봇이 밀치려 함");
+    MEALKIT_FIELD(u32, botSearchSpot, kNoSlot, "봇 술래가 뒤지는 숨는 곳");
+    MEALKIT_FIELD(u32, botSearchTicks, 0, "그 숨는 곳 옆에 있은 틱");
     MEALKIT_ARRAY(Vec3, kBotPathPoints, botPath, "봇 경로 지점");
     MEALKIT_FIELD(u32, botPathCount, 0, "봇 경로 지점 수");
     MEALKIT_FIELD(u32, botPathNext, 0, "봇 다음 경로 지점");
@@ -94,7 +115,7 @@ MEALKIT_STRUCT(PlayerSlot) {
 // Simulation → view notifications (sound/effects). sim/ only writes them. The feedback table (assets/feedback.table) chooses feedback by kind name.
 // These are the contract the game feel work builds on (docs/ROADMAP.md M2): add kinds rather than reading state differences in view/.
 MEALKIT_ENUM(EventKind, u8, Spawn, Jump, Land, Fall, Tag, HoldEnd, FuseWarn, FuseDanger, Eliminated, NewIt, SprintStart,
-             StaminaEmpty, RoundWin, Countdown, MatchStart, MatchEnd);
+             StaminaEmpty, RoundWin, Countdown, MatchStart, MatchEnd, Hide, Unhide, Found, Shove, ShoveHit, Impact);
 inline constexpr u8 kNoPlayer = 0xFF;
 
 MEALKIT_STRUCT(GameEvent) {
@@ -102,7 +123,7 @@ MEALKIT_STRUCT(GameEvent) {
     MEALKIT_FIELD(u8, player, kNoPlayer, "플레이어 슬롯 (잡기: 넘겨준 쪽)");
     MEALKIT_FIELD(u8, other, kNoPlayer, "상대 슬롯 (잡기: 넘겨받은 새 술래)");
     MEALKIT_FIELD(Vec3, position, {}, "위치");
-    MEALKIT_FIELD(f32, value, 0.0f, "카운트다운: 남은 초, 착지: 낙하 속도, 퓨즈 경고: 남은 비율");
+    MEALKIT_FIELD(f32, value, 0.0f, "카운트다운: 남은 초, 착지: 낙하 속도, 퓨즈 경고: 남은 비율, 숨기: 숨는 곳 번호, 밀치기: 범위, 부딪힘: 속도");
 };
 
 inline GameEvent makeEvent(EventKind kind, u8 player, Vec3 position, f32 value, u8 other = kNoPlayer) {
@@ -126,11 +147,15 @@ MEALKIT_STRUCT(WorldState) {
     MEALKIT_FIELD(u32, humanCount, 0, "입력을 보내는 사람 수 (앞쪽 슬롯)");
     MEALKIT_ARRAY(PlayerSlot, mealkit::net::kMaxPlayers, slots, "플레이어 슬롯");
     MEALKIT_FIELD(mealkit::sim::Pool<Pawn>, pawns, {}, "캐릭터");
+    MEALKIT_FIELD(mealkit::sim::Pool<PropBox>, props, {}, "물리 물체");
     MEALKIT_FIELD(u32, itSlot, kNoSlot, "술래 슬롯");
     MEALKIT_FIELD(u32, roundStart, 0, "라운드 시작 틱");
     MEALKIT_FIELD(u32, outCount, 0, "이번 라운드 탈락 수");
     MEALKIT_FIELD(u32, roundWinner, kNoSlot, "지난 라운드 마지막 생존자");
     MEALKIT_FIELD(u32, swaps, 0, "이번 매치 술래 교체 수");
+    MEALKIT_FIELD(u32, hides, 0, "이번 매치 숨은 수");
+    MEALKIT_FIELD(u32, founds, 0, "이번 매치 찾아낸 수");
+    MEALKIT_FIELD(u32, shoves, 0, "이번 매치 밀치기 수 (누군가 밀린 것만)");
     MEALKIT_FIELD(mealkit::Pcg32, rng, {}, "난수 (첫 술래, 봇)");
 };
 
@@ -154,6 +179,11 @@ struct World {
     f32 tickDt = 1.0f / 30.0f; // const-ok: default (reset sets it from the project tick rate)
     std::vector<Vec3> spawns;  // the scene's spawn points
     Vec3 arenaMin, arenaMax;   // MatchArea
+    struct HideArea {
+        Vec3 min, max;
+        HideKind kind = HideKind::Bush;
+    };
+    std::vector<HideArea> hideSpots; // HideSpot objects in scene order
     Tuning tuning;
     mealkit::sim::MatchRules rules;    // from tuning (sim/Match.cpp matchRules)
     mealkit::sim::NavGrid nav;         // baked from the static scene at reset, same on every peer (not state)
@@ -173,5 +203,6 @@ const Pawn* playerPawn(const WorldState& state, u32 slot); // nullptr while wait
 bool aliveInRound(const PlayerSlot& slot);                 // connected and not out
 f32 fuseFraction(const World& world, u32 slot);            // 0..1 of the fuse left
 bool botDriven(const World& world, u32 slot);              // a bot seat, or a player whose input asks for the bot AI
+u32 hideSpotAt(const World& world, const Vec3& feet);      // index of the hide spot the feet are in (kNoSlot if none)
 
 } // namespace fusetag

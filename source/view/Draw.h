@@ -27,9 +27,14 @@ void drawScene(const mealkit::scene::Scene& scene, mealkit::asset::ModelCache& m
 // Interpolated character centers by player slot (has = the slot has a character)
 void pawnPositions(const WorldState& previous, const WorldState& current, f32 alpha, std::array<Vec3, mealkit::net::kMaxPlayers>& at,
                    std::array<bool, mealkit::net::kMaxPlayers>& has);
-// Characters (with juice's squash, lean and flash) and the bomb
+// Hide spots (from World::hideSpots, with juice wobble) and loose props (interpolated)
+void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juice, mealkit::asset::ModelCache& models,
+                   mealkit::render::DrawList& out);
+void drawProps(const WorldState& previous, const WorldState& current, f32 alpha, mealkit::asset::ModelCache& models,
+               mealkit::render::DrawList& out);
+// Characters (with juice's squash, lean and flash) and the bomb. Hidden runners are drawn only for their own player (local)
 void drawWorld(const WorldState& current, const std::array<Vec3, mealkit::net::kMaxPlayers>& at,
-               const std::array<bool, mealkit::net::kMaxPlayers>& has, const ViewTuning& look, const Juice& juice,
+               const std::array<bool, mealkit::net::kMaxPlayers>& has, u32 local, const ViewTuning& look, const Juice& juice,
                mealkit::asset::ModelCache& models, mealkit::render::DrawList& out);
 
 } // namespace fusetag

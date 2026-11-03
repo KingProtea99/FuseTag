@@ -17,6 +17,12 @@ label Sprint
 keys Shift
 pad LeftShoulder
 
+row shove
+label Shove
+keys E
+mouse Left
+pad X
+
 row orbit
 label Turn camera (hold)
 mouse Right

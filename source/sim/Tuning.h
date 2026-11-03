@@ -47,6 +47,22 @@ MEALKIT_STRUCT(Tuning) {
     MEALKIT_FIELD(mealkit::f32, sprintScale, 1.4f, "달리기 속도 배율");
     MEALKIT_FIELD(mealkit::Ticks, staminaMax, mealkit::Ticks::seconds(3.0f), "스태미나 (달릴 수 있는 초)");
     MEALKIT_FIELD(mealkit::Ticks, staminaRecover, mealkit::Ticks::seconds(4.0f), "빈 스태미나가 다 차는 시간 (초)");
+    // Hiding (HideSpot areas)
+    MEALKIT_FIELD(mealkit::Ticks, hideDelay, mealkit::Ticks::seconds(0.5f), "숨는 곳에서 가만히 있으면 숨기까지 (초)");
+    MEALKIT_FIELD(mealkit::f32, hideStillSpeed, 0.8f, "이보다 느리면 가만히 있는 것 (m/s)");
+    MEALKIT_FIELD(mealkit::f32, searchRadius, 2.2f, "술래가 숨은 사람을 찾아내는 거리 (m)");
+    MEALKIT_FIELD(mealkit::Ticks, searchTime, mealkit::Ticks::seconds(1.2f), "그 거리에 이만큼 있으면 찾아낸다 (초)");
+    MEALKIT_FIELD(mealkit::f32, foundPop, 5.0f, "찾아냈을 때 튀어나오는 속도 (m/s)");
+    // Shove (players and props)
+    MEALKIT_FIELD(mealkit::Ticks, shoveCooldown, mealkit::Ticks::seconds(1.5f), "밀치기 재사용 대기 (초)");
+    MEALKIT_FIELD(mealkit::f32, shoveRadius, 2.4f, "밀치기 범위 (m)");
+    MEALKIT_FIELD(mealkit::f32, shoveSpeed, 9.0f, "밀린 사람 수평 속도 (m/s)");
+    MEALKIT_FIELD(mealkit::f32, shoveLift, 3.5f, "밀린 사람 위로 속도 (m/s)");
+    MEALKIT_FIELD(mealkit::Ticks, shoveStun, mealkit::Ticks::seconds(0.5f), "밀린 사람이 조종을 못 하는 시간 (초)");
+    MEALKIT_FIELD(mealkit::f32, shovePropSpeed, 7.0f, "밀린 물체 속도 (m/s, 40 kg 기준, 무거우면 덜)");
+    MEALKIT_FIELD(mealkit::f32, propFriction, 0.6f, "물리 물체 마찰");
+    MEALKIT_FIELD(mealkit::f32, impactSpeed, 3.0f, "부딪힘 이벤트를 내는 최소 속도 (m/s)");
+    MEALKIT_FIELD(mealkit::u32, impactsPerTick, 4, "틱당 부딪힘 이벤트 수 (센 것부터)");
     // Characters (engine movement modes, mealkit/sim/Movement.h)
     MEALKIT_FIELD(mealkit::sim::MoveTuning, move, {}, "이동");
     MEALKIT_FIELD(mealkit::Vec3, gravity, (mealkit::Vec3{0.0f, -20.0f, 0.0f}), "중력 (m/s²)");
@@ -66,6 +82,9 @@ MEALKIT_STRUCT(Tuning) {
     MEALKIT_FIELD(mealkit::f32, botFleeDistance, 8.0f, "봇이 도망칠 지점까지 거리 (m)");
     MEALKIT_FIELD(mealkit::u32, botFleeSamples, 8, "도망칠 지점 후보 수");
     MEALKIT_FIELD(mealkit::f32, botWanderRadius, 8.0f, "술래가 멀 때 돌아다니는 거리 (m)");
+    MEALKIT_FIELD(mealkit::f32, botHideFrom, 15.0f, "술래가 이보다 멀면 봇이 숨는 곳을 찾는다 (m)");
+    MEALKIT_FIELD(mealkit::f32, botHideRadius, 12.0f, "봇이 찾아가는 숨는 곳 거리 (m)");
+    MEALKIT_FIELD(mealkit::f32, botShoveRange, 1.8f, "봇이 술래를 밀치는 거리 (m)");
     MEALKIT_FIELD(mealkit::sim::NavBakeSettings, nav, {}, "길찾기 그리드");
     MEALKIT_FIELD(mealkit::u32, botPathsPerTick, 2, "틱당 길찾기 수 (슬롯 순서)");
     MEALKIT_FIELD(mealkit::u32, botPathExpand, 4096, "길찾기 한 번에 살펴보는 최대 칸 수");

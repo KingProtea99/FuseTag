@@ -13,4 +13,19 @@ MEALKIT_OBJECT(MatchArea) {
     static constexpr mealkit::u32 kObjectFlags = mealkit::reflect::kObjectArea;
 };
 
+// Where runners hide (area): a runner standing still inside for hideDelay is hidden from the others until they move,
+// shove, get tagged, or the it player stands next to them for searchTime. Drawn by the view as a bush/locker/pile of its size
+MEALKIT_ENUM(HideKind, mealkit::u8, Bush, Locker, Pile);
+MEALKIT_OBJECT(HideSpot) {
+    static constexpr const char* kObjectLabel = "숨는 곳";
+    static constexpr mealkit::u32 kObjectFlags = mealkit::reflect::kObjectArea;
+    MEALKIT_FIELD(HideKind, kind, HideKind::Bush, "모양");
+};
+
+// A loose physics box (crate, barrel, cart) that can be knocked over and shoved to block a corridor. Size = the object's scale
+MEALKIT_OBJECT(Prop) {
+    static constexpr const char* kObjectLabel = "물리 물체";
+    MEALKIT_FIELD(mealkit::f32, mass, 40.0f, "질량 (kg)");
+};
+
 } // namespace fusetag

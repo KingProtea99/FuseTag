@@ -23,6 +23,7 @@ GameInput LocalInput::sample(const input::Actions& actions, const GameCamera& ca
     g.moveZ = quantize(move.z);
     if (jumpLatch || actions.down("jump")) g.buttons |= kButtonJump;
     if (actions.down("sprint")) g.buttons |= kButtonSprint;
+    if (shoveLatch || actions.down("shove")) g.buttons |= kButtonShove;
     return g;
 }
 

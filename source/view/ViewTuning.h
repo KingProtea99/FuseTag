@@ -114,6 +114,17 @@ MEALKIT_STRUCT(JuiceTuning) {
     MEALKIT_FIELD(f32, landDip, -0.12f, "착지 낙하 속도당 카메라 내려감 (m/s당 충격)");
     MEALKIT_FIELD(f32, dipFrequency, 3.0f, "카메라 내려감 스프링 진동수 (Hz)");
     MEALKIT_FIELD(f32, dipDamping, 0.55f, "카메라 내려감 스프링 감쇠");
+    // Hide spots and shoves
+    MEALKIT_FIELD(Color, bushColor, (Color::rgb(70, 140, 70)), "덤불 색");
+    MEALKIT_FIELD(Color, lockerColor, (Color::rgb(110, 125, 150)), "사물함 색");
+    MEALKIT_FIELD(Color, pileColor, (Color::rgb(230, 235, 245)), "더미 색");
+    MEALKIT_FIELD(f32, spotKick, 3.0f, "숨는 곳이 흔들리는 충격");
+    MEALKIT_FIELD(f32, spotFoundKick, 7.0f, "찾아냈을 때 숨는 곳이 터지는 충격");
+    MEALKIT_FIELD(f32, hiddenSelfScale, 0.85f, "숨었을 때 내 캐릭터 크기 (나만 보인다)");
+    MEALKIT_FIELD(f32, hiddenSelfFlash, 0.55f, "숨었을 때 내 캐릭터를 하얗게 (나만 보인다)");
+    MEALKIT_FIELD(f32, shoveKick, 5.0f, "밀칠 때 늘어남 (충격)");
+    MEALKIT_FIELD(f32, shoveHitKick, -5.0f, "밀린 쪽 찌그러짐 (충격)");
+    MEALKIT_FIELD(f32, shoveHitSpin, 14.0f, "밀린 쪽 회전 (rad/s)");
     // Danger when I'm it
     MEALKIT_FIELD(f32, dangerVignette, 0.35f, "내가 술래일 때 비네트");
     MEALKIT_FIELD(f32, dangerPulse, 0.25f, "폭탄 맥박에 맞춘 비네트 추가 (퓨즈가 적을수록)");

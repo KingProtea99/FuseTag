@@ -106,7 +106,7 @@ void movePawns(World& world) {
         mealkit::sim::MoveIntent intent;
         bool sprintWish = false;
         f32 scale = 1.0f;
-        if (playing && !p.out && p.hold.ready(s.tick)) {
+        if (playing && !p.out && p.hold.ready(s.tick) && p.stunned.ready(s.tick)) {
             if (botDriven(world, pawn.player)) {
                 intent = botIntent(world, pawn.player, pawn, pathBudget, sprintWish);
                 scale *= t.botSpeedScale;

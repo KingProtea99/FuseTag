@@ -50,6 +50,9 @@ void loadScene(World& world, const scene::Scene& scene, mealkit::asset::ModelCac
             world.physics.createHeightField(heights.data(), map.size, e.scale * -0.5f, e.scale.x / cells, e.scale.z / cells, d);
         } else if (e.is(scene::kTypeSpawn)) {
             world.spawns.push_back(e.position);
+        } else if (e.is<HideSpot>()) {
+            const scene::Bounds b = scene::areaBounds(e);
+            world.hideSpots.push_back({b.min, b.max, scene::readObject<HideSpot>(e).kind});
         } else if (e.is<MatchArea>() && !arena) {
             const scene::Bounds b = scene::areaBounds(e);
             world.arenaMin = b.min;
@@ -75,13 +78,16 @@ void World::reset(u64 seed, u32 humans, const Tuning& tuningValue, const scene::
     tuning = tuningValue;
     rules = matchRules(tuning);
     physics.setGravity(tuning.gravity);
+    physics.setContactEvents(tuning.impactSpeed, tuning.impactsPerTick);
     spawns.clear();
+    hideSpots.clear();
     state = WorldState{};
     events.clear();
 
     // Fixed body creation order: scene → characters (slot order)
     loadScene(*this, scene, models);
     nav = mealkit::sim::bakeNavGrid(physics, arenaMin, arenaMax, tuning.nav); // only static scene bodies exist now
+    createProps(*this, scene);
     state.humanCount = std::min(humans, mealkit::net::kMaxPlayers);
     state.playerCount = std::max(state.humanCount, std::min(tuning.botFill, mealkit::net::kMaxPlayers));
     for (u32 i = 0; i < state.playerCount; ++i) {
@@ -115,14 +121,20 @@ void World::step(const mealkit::net::TickInputs& tickInputs) {
     respawnPawns(*this);
     movePawns(*this);
     physics.step(tickDt, 2); // splits a tick into 2 physics substeps for stability
+    for (const mealkit::physics::ContactEvent& c : physics.contacts())
+        events.push(makeEvent(EventKind::Impact, kNoPlayer, c.point, c.speed));
     removeFallenPawns(*this);
     sensePawns(*this);
+    senseProps(*this);
+    shovePlayers(*this);
+    updateHiding(*this);
     tagPlayers(*this);
     burnFuse(*this);
     checkRoundEnd(*this);
     removeBlownPawns(*this);
     // End of tick: delete bodies of characters removed this tick, and put ones created this tick into iteration from the next tick
     state.pawns.endTick([this](Pawn& pawn) { mealkit::sim::destroyMover(physics, pawn.mover); });
+    state.props.endTick([this](PropBox& prop) { physics.destroy(prop.body); });
     ++state.tick;
 }
 
@@ -138,6 +150,17 @@ bool aliveInRound(const PlayerSlot& slot) { return slot.connected && !slot.out; 
 f32 fuseFraction(const World& world, u32 slot) {
     const u32 length = world.tuning.fuseLength.value;
     return length ? static_cast<f32>(world.state.slots[slot].fuse) / static_cast<f32>(length) : 0.0f;
+}
+
+u32 hideSpotAt(const World& world, const Vec3& feet) {
+    constexpr f32 kAbove = 0.3f; // const-ok: feet may sit a little above the area bottom (floor contact)
+    for (u32 i = 0; i < world.hideSpots.size(); ++i) {
+        const World::HideArea& a = world.hideSpots[i];
+        if (feet.x >= a.min.x && feet.x <= a.max.x && feet.z >= a.min.z && feet.z <= a.max.z && feet.y >= a.min.y - kAbove &&
+            feet.y <= a.max.y)
+            return i;
+    }
+    return kNoSlot;
 }
 
 bool botDriven(const World& world, u32 slot) {

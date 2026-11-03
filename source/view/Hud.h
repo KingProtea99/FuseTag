@@ -41,6 +41,9 @@ MEALKIT_VIEWMODEL(HudVm) {
     MEALKIT_FIELD(mealkit::f32, myFuse, 1.0f, "내 퓨즈 (0~1)");
     MEALKIT_FIELD(mealkit::f32, stamina, 1.0f, "내 스태미나 (0~1)");
     MEALKIT_FIELD(bool, winded, false, "지침");
+    MEALKIT_FIELD(bool, hidden, false, "나는 숨음");
+    MEALKIT_FIELD(bool, inSpot, false, "숨는 곳 안 (가만히 있으면 숨는다)");
+    MEALKIT_FIELD(mealkit::f32, shoveReady, 1.0f, "밀치기 준비 (0~1)");
     MEALKIT_FIELD(bool, roundOver, false, "라운드 결과 중");
     MEALKIT_FIELD(std::string, winnerName, {}, "라운드 생존자 이름");
     MEALKIT_LIST(ChatLineVm, chat, 5, "채팅 (최근, 잠시 보인다)");

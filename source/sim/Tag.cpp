@@ -43,6 +43,7 @@ void tagPlayers(World& world) {
     it.immuneFrom = victim;
     it.boost.start(s.tick, t.escapeBoostTime);
     ++it.tags;
+    reveal(world, victim);
     next.it = true;
     next.hold.start(s.tick, t.tagHold);
     next.immune = {};

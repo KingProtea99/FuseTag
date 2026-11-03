@@ -17,6 +17,15 @@ void sensePawns(World& world);        // physics results → position, velocity,
 void respawnAll(World& world);        // round start: everyone back to the spawn points
 void setPresence(World& world, const mealkit::sim::Presence& presence); // connect/disconnect mid-match (engine command)
 
+// Hide.cpp
+void updateHiding(World& world);       // still in a hide spot → hidden; moving → seen; it standing close → found
+void reveal(World& world, u32 slot);   // seen again (moved, shoved, tagged, found)
+
+// Props.cpp
+void createProps(World& world, const mealkit::scene::Scene& scene); // Prop objects → dynamic boxes (after the scene, before characters)
+void senseProps(World& world);         // physics → prop position/rotation (for the view)
+void shovePlayers(World& world);       // shove button: pushes players and props around the shover
+
 // Tag.cpp
 void tagPlayers(World& world); // it touches a runner → roles swap
 

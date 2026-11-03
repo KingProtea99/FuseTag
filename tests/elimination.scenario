@@ -1,20 +1,21 @@
 # Elimination in the cage test arena: six bots swap the fuse often, so fuses run low together and the fuse ramp (after 90 s)
-# finishes them between about 120 s and 135 s. Out players get an out order and lose their character after blastRemove,
+# finishes them between about 105 s and 140 s. Out players get an out order and lose their character after blastRemove,
 # a new it is picked among the rest, and the last one standing ends round 1 with placement points (10 for 1st ... 2 for 6th).
+# By 142 s round 2's countdown has reset the round (outCount 0) while lastPlace and score keep round 1's result.
 seed 7
 scene scenes/tests/cage.scene
-tick 120s outCount == 0
-tick 124s outCount == 1
-tick 124s itSlot == 2
-tick 136s flow.phase == RoundEnd
-tick 136s flow.round == 1
-tick 136s outCount == 5
-tick 136s roundWinner == 0
-tick 136s slots[0].lastPlace == 1
-tick 136s slots[1].lastPlace == 2
-tick 136s slots[2].lastPlace == 4
-tick 136s slots[3].lastPlace == 5
-tick 136s slots[4].lastPlace == 3
-tick 136s slots[5].lastPlace == 6
-tick 136s slots[0].score == 10
-tick 136s slots[5].score == 2
+tick 104s outCount == 0
+tick 109s outCount == 1
+tick 109s itSlot == 4
+tick 142s flow.phase == Countdown
+tick 142s flow.round == 1
+tick 142s outCount == 0
+tick 142s roundWinner == 1
+tick 142s slots[0].lastPlace == 3
+tick 142s slots[1].lastPlace == 1
+tick 142s slots[2].lastPlace == 4
+tick 142s slots[3].lastPlace == 6
+tick 142s slots[4].lastPlace == 5
+tick 142s slots[5].lastPlace == 2
+tick 142s slots[0].score == 5
+tick 142s slots[5].score == 7

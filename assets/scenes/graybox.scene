@@ -303,3 +303,231 @@ scale 44 12 44
 color FF50C8FF
 flags 0
 end
+
+entity
+id 28
+name Bush 1
+kind HideSpot
+position -18 0.8 6
+rotation 0 0 0 1
+scale 2.4 1.6 2.4
+color FF46C846
+flags 0
+field kind Bush
+end
+
+entity
+id 29
+name Bush 2
+kind HideSpot
+position 18 0.8 -6
+rotation 0 0 0 1
+scale 2.4 1.6 2.4
+color FF46C846
+flags 0
+field kind Bush
+end
+
+entity
+id 30
+name Bush 3
+kind HideSpot
+position -6 0.8 18
+rotation 0 0 0 1
+scale 2.4 1.6 2.4
+color FF46C846
+flags 0
+field kind Bush
+end
+
+entity
+id 31
+name Bush 4
+kind HideSpot
+position 6 0.8 -18
+rotation 0 0 0 1
+scale 2.4 1.6 2.4
+color FF46C846
+flags 0
+field kind Bush
+end
+
+entity
+id 32
+name Bush 5
+kind HideSpot
+position -11 0.8 -3
+rotation 0 0 0 1
+scale 2.4 1.6 2.4
+color FF46C846
+flags 0
+field kind Bush
+end
+
+entity
+id 33
+name Bush 6
+kind HideSpot
+position 11 0.8 3
+rotation 0 0 0 1
+scale 2.4 1.6 2.4
+color FF46C846
+flags 0
+field kind Bush
+end
+
+entity
+id 34
+name Locker 1
+kind HideSpot
+position -21.2 1.1 -8
+rotation 0 0 0 1
+scale 1.2 2.2 1.4
+color FF96A0B4
+flags 0
+field kind Locker
+end
+
+entity
+id 35
+name Locker 2
+kind HideSpot
+position 21.2 1.1 8
+rotation 0 0 0 1
+scale 1.2 2.2 1.4
+color FF96A0B4
+flags 0
+field kind Locker
+end
+
+entity
+id 36
+name Pile 1
+kind HideSpot
+position -4 0.6 -9
+rotation 0 0 0 1
+scale 2 1.2 2
+color FFF0F0F0
+flags 0
+field kind Pile
+end
+
+entity
+id 37
+name Crate 1
+kind Prop
+position 3 0.5 6
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 38
+name Crate 2
+kind Prop
+position 4.1 0.5 6
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 39
+name Crate 3
+kind Prop
+position 3.5 0.5 7.1
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 40
+name Crate 4
+kind Prop
+position -3 0.5 -5
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 41
+name Crate 5
+kind Prop
+position -4.1 0.5 -5
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 42
+name Crate 6
+kind Prop
+position 12 0.5 -12
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 43
+name Crate 7
+kind Prop
+position 12 0.5 -13.1
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 44
+name Crate 8
+kind Prop
+position -12 0.5 12
+rotation 0 0 0 1
+scale 1 1 1
+color FF4A7AB0
+flags 1
+field mass 40
+end
+
+entity
+id 45
+name Barrel 1
+kind Prop
+position 0 0.6 10
+rotation 0 0 0 1
+scale 0.8 1.2 0.8
+color FF3050C0
+flags 1
+field mass 70
+end
+
+entity
+id 46
+name Barrel 2
+kind Prop
+position 10 0.6 0
+rotation 0 0 0 1
+scale 0.8 1.2 0.8
+color FF3050C0
+flags 1
+field mass 70
+end

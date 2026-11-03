@@ -21,6 +21,9 @@ hud.itTag = IT
 hud.outTag = out
 hud.outYou = Boom! You're out - spectating
 hud.winded = Catching breath
+hud.shove = Shove (E)
+hud.hidden = Hidden! Moving gives you away
+hud.inSpot = Stay still to hide
 hud.roundWin = {winnerName} survives!
 
 settings.title = Settings

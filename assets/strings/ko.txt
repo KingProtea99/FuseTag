@@ -21,6 +21,9 @@ hud.itTag = 술래
 hud.outTag = 탈락
 hud.outYou = 펑! 탈락 - 관전 중
 hud.winded = 숨 고르는 중
+hud.shove = 밀치기 (E)
+hud.hidden = 숨었다! 움직이면 들킨다
+hud.inSpot = 가만히 있으면 숨는다
 hud.roundWin = {winnerName} 생존!
 
 settings.title = 설정

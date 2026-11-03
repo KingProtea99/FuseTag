@@ -62,6 +62,28 @@ void Juice::onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 
         if (e.player == localPlayer || e.other == localPlayer) m_fov.kick(t.fovTagKick);
         break;
     }
+    case EventKind::Hide:
+    case EventKind::Unhide:
+    case EventKind::Found: {
+        const u32 spot = static_cast<u32>(e.value);
+        if (spot < 1024) { // const-ok: sanity bound on the index
+            if (m_spots.size() <= spot) m_spots.resize(spot + 1);
+            m_spots[spot].kick(e.kind == EventKind::Found ? t.spotFoundKick : t.spotKick);
+        }
+        if (fx && e.kind == EventKind::Found) fx->squash.kick(t.holdEndKick);
+        break;
+    }
+    case EventKind::Shove:
+        if (fx) fx->squash.kick(t.shoveKick);
+        break;
+    case EventKind::ShoveHit:
+        if (fx) {
+            fx->squash.kick(t.shoveHitKick);
+            fx->spinVelocity += t.shoveHitSpin;
+            fx->flashUntil = now + t.flashSeconds;
+        }
+        if (e.player == localPlayer) m_fov.kick(t.fovTagKick * 0.5f);
+        break;
     case EventKind::HoldEnd:
         if (fx) fx->squash.kick(t.holdEndKick);
         break;
@@ -175,6 +197,7 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
         mySpeed = std::sqrt(v.x * v.x + v.z * v.z);
     }
     m_dip.update(0.0f, t.dipFrequency, t.dipDamping, dt);
+    for (Spring& sp : m_spots) sp.update(0.0f, t.squashFrequency, t.squashDamping, dt);
     m_fov.update(t.fovSpeed * std::min(mySpeed / t.runSpeed, 1.0f), t.fovFrequency, t.fovDamping, dt);
 
     m_lights.erase(std::remove_if(m_lights.begin(), m_lights.end(), [now](const Light& l) { return now >= l.end; }), m_lights.end());
@@ -215,6 +238,12 @@ bool Juice::bomb(Vec3& at, f32& scale, f32& flash) const {
     scale = t.bombSize * (1.0f + t.bombPulseSize * pulse);
     flash = m_fuseLeft < t.bombFlashBelow && pulse > 0.0f ? 0.8f : 0.0f; // const-ok: flash amount
     return true;
+}
+
+void Juice::spotLook(u32 spot, Vec3& scale, Quat& rotation) const {
+    const f32 v = spot < m_spots.size() ? m_spots[spot].value : 0.0f;
+    scale = {1.0f + v * 0.5f, 1.0f - v * 0.3f, 1.0f + v * 0.5f}; // const-ok: wobble shape
+    rotation = quatFromAxisAngle({0, 0, 1}, v * 0.15f); // const-ok: a little sway
 }
 
 bool Juice::itMarker(Vec3& at, f32& scale, Quat& rotation) const {

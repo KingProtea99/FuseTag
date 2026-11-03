@@ -150,6 +150,51 @@ board hud 1920 1080
       radius 5
     end
   end
+  frame shoveTrack
+    pos 1130 1000
+    size 120 10
+    constraints center bottom
+    fill #FFFFFF20
+    radius 5
+    visible !meOut
+    clip
+    frame fill
+      size fill fill
+      widthRatio shoveReady
+      fill #FFB040
+      radius 5
+    end
+  end
+  text shoveLabel
+    pos 1130 970
+    size 120 hug
+    constraints center bottom
+    key hud.shove
+    visible !meOut
+    fontSize 18
+    color $textDim
+    textAlign center
+  end
+  text hiddenTag
+    pos 710 900
+    size 500 hug
+    constraints center bottom
+    key hud.hidden
+    visible hidden
+    fontSize 30
+    color #7CD67C
+    textAlign center
+  end
+  text inSpotTag
+    pos 710 900
+    size 500 hug
+    constraints center bottom
+    key hud.inSpot
+    visible inSpot
+    fontSize 24
+    color $textDim
+    textAlign center
+  end
   text winded
     pos 810 970
     size 300 hug
