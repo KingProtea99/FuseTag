@@ -33,6 +33,7 @@ struct FlowGame {
     bool results = false; // the simulation reached its results phase (same tick for everyone)
     mealkit::u32 playerCount = 0;
     std::array<mealkit::u32, mealkit::net::kMaxPlayers> score{}; // results rows: one number per player
+    std::array<bool, mealkit::net::kMaxPlayers> bots{};          // seats played by bots (named "Bot N")
     bool lowestFirst = false;                                    // rank by the lowest score (falls) instead of the highest
 };
 
@@ -53,6 +54,8 @@ public:
 
     // Name of a player index (name set in the lobby, P1.. if none)
     static std::string playerName(const mealkit::net::LockstepSession& session, mealkit::u32 slot);
+    // Same, or "Bot N" for a seat a bot plays
+    static std::string seatName(mealkit::game::GameContext& ctx, const FlowGame& game, mealkit::u32 slot);
 
 private:
     void show(mealkit::game::GameContext& ctx, Screen screen);

@@ -13,6 +13,15 @@ title.waiting = Waiting for the host to start ({count} in the lobby)
 title.ended = Ended: {reason}
 
 hud.you = you
+player.bot = Bot {n}
+hud.round = Round {round}/{rounds}
+hud.itYou = You're it! Tag someone!
+hud.itOther = {itName} is it
+hud.itTag = IT
+hud.outTag = out
+hud.outYou = Boom! You're out - spectating
+hud.winded = Catching breath
+hud.roundWin = {winnerName} survives!
 
 settings.title = Settings
 settings.tab.display = Display
@@ -115,7 +124,7 @@ pause.leave = Leave
 results.title = Results
 results.winner = Winner
 results.rank = #{rank}
-results.score = fell {score}
+results.score = {score} pts
 results.lobby = Back to the lobby
 results.auto = Lobby in {secondsLeft} s
 results.wait = Waiting for the host to go back to the lobby

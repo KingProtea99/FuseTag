@@ -21,33 +21,34 @@ Order of work for the first shippable version. Rules are in `docs/DESIGN.md`; en
 Goal: 4–8 capsules (players + bots) on a box-and-ramp test map, playing complete rounds of fuse tag.
 
 **State and tuning**
-- [ ] `PlayerSlot`: `fuse` (ticks left), `isIt`, `holdUntil`, `immuneFrom`/`immuneUntil`, `eliminated`, `outOrder`, `roundPoints`. `WorldState`: `itSlot`, `roundStartTick`.
-- [ ] `Tuning`: `fuseLength`, `fuseRampAfter`, `fuseRampRate`, `tagRange`, `tagHold`, `tagBackImmunity`, `escapeBoost`, `escapeBoostTime`, `itSpeedScale`, `placementPoints[8]`, `rounds`.
-- [ ] Test map `scenes/graybox.scene`: floor, walls, ramps, a few pillars to circle around, 8 spawn points.
+- [x] `PlayerSlot`: `fuse` (ticks left), `isIt`, `holdUntil`, `immuneFrom`/`immuneUntil`, `eliminated`, `outOrder`, `roundPoints`. `WorldState`: `itSlot`, `roundStartTick`.
+- [x] `Tuning`: `fuseLength`, `fuseRampAfter`, `fuseRampRate`, `tagRange`, `tagHold`, `tagBackImmunity`, `escapeBoost`, `escapeBoostTime`, `itSpeedScale`, `placementPoints[8]`, `rounds`.
+- [x] Test map `scenes/graybox.scene`: floor, walls, ramps, a few pillars to circle around, 8 spawn points.
 
 **Rules (`sim/`, one file per system)**
-- [ ] `sim/Tag.cpp`: overlap check it → nearest runner within `tagRange` (fixed slot order on ties), swap, hold, immunity, boost.
-- [ ] `sim/Fuse.cpp`: burn the it player's fuse each tick, ramp after `fuseRampAfter`; at 0 → eliminate, pick a new it with `Pcg32` among the alive, hold them.
-- [ ] Eliminated players: Pawn launched as a ragdoll (`Mover` Ragdoll), then removed after a delay; slot becomes a spectator.
-- [ ] `sim/Match.cpp`: round ends when one is left; placement points by `outOrder`; `MatchFlow` scores; next round resets fuses and positions.
-- [ ] Sprint with stamina (`sprintSpeed`, `staminaMax`, `staminaRegen`) so chases have rhythm.
+- [x] `sim/Tag.cpp`: overlap check it → nearest runner within `tagRange` (fixed slot order on ties), swap, hold, immunity, boost.
+- [x] `sim/Fuse.cpp`: burn the it player's fuse each tick, ramp after `fuseRampAfter`; at 0 → eliminate, pick a new it with `Pcg32` among the alive, hold them.
+- [x] Eliminated players: capsule launched up and removed after `blastRemove`; slot becomes a spectator. Ragdoll launch moves to M2 with the explosion.
+- [x] `sim/Match.cpp`: round ends when one is left; placement points by `outOrder`; `MatchFlow` scores; next round resets fuses and positions.
+- [x] Sprint with stamina (`sprintSpeed`, `staminaMax`, `staminaRegen`) so chases have rhythm.
 
 **Events (the contract the feel milestones build on)**
-- [ ] `GameEvent` kinds: `Tag` (from, to, position), `HoldEnd`, `FuseLow` (slot, fraction; at 30% and 10%), `FuseOut`, `Eliminated` (slot, position, launch velocity), `NewIt`, `Jump`, `Land` (fall speed), `SprintStart`, `StaminaEmpty`, `RoundWin` (slot).
+- [x] `GameEvent` kinds: `Tag` (from, to, position), `HoldEnd`, `FuseLow` (slot, fraction; at 30% and 10%), `FuseOut`, `Eliminated` (slot, position, launch velocity), `NewIt`, `Jump`, `Land` (fall speed), `SprintStart`, `StaminaEmpty`, `RoundWin` (slot).
 
 **Bots (`sim/Bots.cpp`, nav grid like the coop sample's chasers)**
-- [ ] It: path to the nearest runner, re-target every N ticks, give up on someone out of reach.
-- [ ] Runner: flee from it (pick the nav cell farthest from it within a radius), circle pillars, sprint when close.
-- [ ] Bots get a small reaction delay (`botReaction`) so humans can win.
+- [x] It: path to the nearest runner, re-target every N ticks, give up on someone out of reach.
+- [x] Runner: flee from it (pick the nav cell farthest from it within a radius), circle pillars, sprint when close.
+- [x] Bots get a small reaction delay (`botReaction`) so humans can win.
 
 **Screens (bare)**
-- [ ] HUD: fuse bar per player (color, name), "it" marker, round timer, "You're it!" text. World-space name tags.
-- [ ] Results: placement per round, total points (`FlowGame` `score`).
+- [x] HUD: fuse bar per player (color, name), "it" marker, round timer, "You're it!" text. World-space name tags.
+- [x] Results: placement per round, total points (`FlowGame` `score`).
 - [ ] Debug UI (F1): give fuse, force it, kill bots, show bot targets.
 
 **Tests**
-- [ ] `tests/tag_swap.scenario`, `fuse_carry.scenario` (burned fuse stays after swap), `elimination.scenario`, `round_end.scenario`, `tag_back.scenario` (immunity holds).
-- [ ] Replay `replays/graybox_6p_seed7.rec`, `mp_test` with lag `-Lag 120 -Jitter 30 -Loss 3`.
+- [x] `tests/round_flow.scenario`, `tests/fuse_rules.scenario` (bot match: swaps, burn, placement points, rounds)
+- [ ] Focused scenarios (tag-back immunity, burn carry-over) need a scripted test scene or input recording
+- [x] Replay `replays/graybox_3p_seed7.rec`, `mp_test` with lag `-Lag 120 -Jitter 30 -Loss 3`.
 
 ---
 

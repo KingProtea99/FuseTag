@@ -53,6 +53,14 @@ MEALKIT_STRUCT(ViewTuning) {
                                 Color::rgb(250, 204, 21), Color::rgb(168, 85, 247), Color::rgb(236, 72, 153),
                                 Color::rgb(20, 184, 166), Color::rgb(249, 115, 22)}),
                   "플레이어 색");
+    MEALKIT_FIELD(Color, outColor, (Color::rgb(40, 40, 44)), "탈락한 캐릭터 색");
+    MEALKIT_FIELD(Color, bombColor, (Color::rgb(30, 30, 34)), "폭탄 색");
+    MEALKIT_FIELD(f32, bombSize, 0.5f, "폭탄 크기 (m)");
+    MEALKIT_FIELD(f32, bombHeight, 0.45f, "머리 위 폭탄 높이 (m)");
+    MEALKIT_FIELD(f32, bombPulseSlow, 1.0f, "퓨즈가 가득일 때 폭탄 맥박 (회/초)");
+    MEALKIT_FIELD(f32, bombPulseFast, 6.0f, "퓨즈가 거의 없을 때 폭탄 맥박 (회/초)");
+    MEALKIT_FIELD(f32, bombPulseSize, 0.12f, "폭탄 맥박 크기 (비율)");
+    MEALKIT_FIELD(f32, bombFlashBelow, 0.3f, "이 비율 아래로 퓨즈가 남으면 폭탄이 번쩍인다");
     MEALKIT_FIELD(f32, resultsSeconds, 20.0f, "결과 화면 뒤 방장이 자동으로 로비로 돌아가기까지 (초)");
     MEALKIT_FIELD(f32, chatShowSeconds, 8.0f, "매치 중 새 채팅 줄을 보여 주는 시간 (초)");
 };

@@ -12,6 +12,11 @@ label Jump
 keys Space
 pad A
 
+row sprint
+label Sprint
+keys Shift
+pad LeftShoulder
+
 row orbit
 label Turn camera (hold)
 mouse Right

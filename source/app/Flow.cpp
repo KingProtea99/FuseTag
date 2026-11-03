@@ -29,6 +29,11 @@ std::string Flow::playerName(const net::LockstepSession& session, u32 slot) {
     return "P" + std::to_string(slot + 1);
 }
 
+std::string Flow::seatName(game::GameContext& ctx, const FlowGame& game, u32 slot) {
+    if (slot < game.bots.size() && game.bots[slot]) return ctx.strings.format("player.bot", {{"n", std::to_string(slot + 1)}});
+    return playerName(ctx.session, slot);
+}
+
 bool Flow::blocksInput() const { return m_screen != Screen::Match || m_paused || m_chatOpen || m_ids.results != 0; }
 bool Flow::pausesSimulation() const { return m_paused && m_pause.offline; }
 
@@ -318,7 +323,7 @@ void Flow::fillResults(game::GameContext& ctx, const FlowGame& game) {
         const u32 slot = order[i];
         ResultRowVm& row = m_results.rows[i];
         row.rank = i > 0 && game.score[slot] == game.score[order[i - 1]] ? m_results.rows[i - 1].rank : i + 1;
-        row.name = playerName(ctx.session, slot);
+        row.name = seatName(ctx, game, slot);
         row.score = game.score[slot];
         row.you = slot == ctx.session.localPlayer();
         row.winner = row.rank == 1;

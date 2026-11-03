@@ -1,4 +1,4 @@
-// Player characters: spawn, movement, respawn after falling, players joining and leaving mid-match.
+// Player characters: spawn, movement and sprint, respawn after falling, removal after a blast, players joining and leaving mid-match.
 #include "sim/Systems.h"
 
 #include <algorithm>
@@ -40,6 +40,34 @@ mealkit::sim::MoveIntent intentFromInput(const GameInput& in) {
     return i;
 }
 
+u32 staminaFull(const Tuning& t) { return t.staminaMax.value * t.staminaRecover.value; }
+
+// Sprint wish → whether the player sprints this tick. Draining one tick of stamina costs staminaRecover units, a tick of rest gives
+// back staminaMax units, so empty → full takes staminaRecover. Running dry leaves the player winded until full.
+bool updateStamina(World& world, u32 slot, bool wish, bool moving) {
+    const Tuning& t = world.tuning;
+    PlayerSlot& p = world.state.slots[slot];
+    const u32 full = staminaFull(t);
+    const bool sprint = wish && moving && !p.winded && p.stamina > 0;
+    if (sprint) {
+        p.stamina = p.stamina > t.staminaRecover.value ? p.stamina - t.staminaRecover.value : 0u;
+        if (p.stamina == 0) {
+            p.winded = true;
+            const Pawn* pawn = playerPawn(world.state, slot);
+            world.events.push(makeEvent(EventKind::StaminaEmpty, static_cast<u8>(slot), pawn ? pawn->position : Vec3{}, 0.0f));
+        }
+    } else {
+        p.stamina = std::min(full, p.stamina + t.staminaMax.value);
+        if (p.stamina == full) p.winded = false;
+    }
+    if (sprint && !p.sprinting) {
+        const Pawn* pawn = playerPawn(world.state, slot);
+        world.events.push(makeEvent(EventKind::SprintStart, static_cast<u8>(slot), pawn ? pawn->position : Vec3{}, 0.0f));
+    }
+    p.sprinting = sprint;
+    return sprint;
+}
+
 } // namespace
 
 const Pawn* playerPawn(const WorldState& state, u32 slot) {
@@ -50,51 +78,107 @@ void respawnPawns(World& world) {
     WorldState& s = world.state;
     for (u32 slot = 0; slot < s.playerCount; ++slot) { // player slot order
         PlayerSlot& p = s.slots[slot];
-        if (!p.connected || s.pawns.alive(p.pawn) || !p.respawn.ready(s.tick)) continue;
+        if (!aliveInRound(p) || s.pawns.alive(p.pawn) || !p.respawn.ready(s.tick)) continue;
         const Vec3 at = spawnPosition(world, slot);
         p.pawn = spawnPawn(world, slot, at);
         world.events.push(makeEvent(EventKind::Spawn, static_cast<u8>(slot), at, 0.0f));
     }
 }
 
+void respawnAll(World& world) {
+    WorldState& s = world.state;
+    for (u32 slot = 0; slot < s.playerCount; ++slot) {
+        PlayerSlot& p = s.slots[slot];
+        if (s.pawns.alive(p.pawn)) s.pawns.destroy(p.pawn);
+        p.pawn = {};
+        p.respawn = {};
+    }
+    respawnPawns(world); // the old bodies are deleted at the end of the tick
+}
+
 void movePawns(World& world) {
     const bool playing = matchPlaying(world); // during countdown and after the end, stand and wait
-    for (auto [id, p] : world.state.pawns) {  // Pawn slot order
-        const mealkit::sim::MoveIntent intent = playing ? intentFromInput(world.inputs[p.player]) : mealkit::sim::MoveIntent{};
-        if (mealkit::sim::move(world.physics, p.mover, intent, world.tuning.move, 1.0f, world.tuning.gravity, world.tickDt))
-            world.events.push(makeEvent(EventKind::Jump, static_cast<u8>(p.player), p.position, 0.0f));
+    const Tuning& t = world.tuning;
+    WorldState& s = world.state;
+    u32 pathBudget = t.botPathsPerTick;
+    for (auto [id, pawn] : s.pawns) { // Pawn slot order
+        PlayerSlot& p = s.slots[pawn.player];
+        mealkit::sim::MoveIntent intent;
+        bool sprintWish = false;
+        f32 scale = 1.0f;
+        if (playing && !p.out && p.hold.ready(s.tick)) {
+            if (botDriven(world, pawn.player)) {
+                intent = botIntent(world, pawn.player, pawn, pathBudget, sprintWish);
+                scale *= t.botSpeedScale;
+            } else {
+                intent = intentFromInput(world.inputs[pawn.player]);
+                sprintWish = (world.inputs[pawn.player].buttons & kButtonSprint) != 0;
+            }
+        }
+        const bool moving = mealkit::lengthSq(intent.wish) > 0.01f; // const-ok: stick dead zone squared
+        if (!p.out && updateStamina(world, pawn.player, sprintWish, moving)) scale *= t.sprintScale;
+        if (p.it) scale *= t.itSpeedScale;
+        if (!p.boost.ready(s.tick)) scale *= t.escapeBoost;
+        if (p.out) continue; // a blown-up body only flies (no movement, no jump)
+        if (mealkit::sim::move(world.physics, pawn.mover, intent, t.move, scale, t.gravity, world.tickDt))
+            world.events.push(makeEvent(EventKind::Jump, static_cast<u8>(pawn.player), pawn.position, 0.0f));
     }
 }
 
 void removeFallenPawns(World& world) {
     WorldState& s = world.state;
-    for (auto [id, p] : s.pawns) {
-        if (p.position.y >= world.tuning.fallHeight) continue;
-        PlayerSlot& slot = s.slots[p.player];
+    for (auto [id, pawn] : s.pawns) {
+        if (pawn.position.y >= world.tuning.fallHeight) continue;
+        PlayerSlot& slot = s.slots[pawn.player];
         slot.pawn = {};
         slot.respawn.start(s.tick, world.tuning.respawn);
-        world.events.push(makeEvent(EventKind::Fall, static_cast<u8>(p.player), p.position, 0.0f));
+        world.events.push(makeEvent(EventKind::Fall, static_cast<u8>(pawn.player), pawn.position, 0.0f));
         s.pawns.destroy(id); // the body is deleted at the end of the tick (World::step)
     }
 }
 
-void sensePawns(World& world) {
-    for (auto [id, p] : world.state.pawns) mealkit::sim::senseMover(world.physics, p.mover, world.tuning.move, p.position, p.velocity);
+void removeBlownPawns(World& world) {
+    WorldState& s = world.state;
+    for (u32 slot = 0; slot < s.playerCount; ++slot) {
+        PlayerSlot& p = s.slots[slot];
+        if (!p.out || !s.pawns.alive(p.pawn) || !p.remove.ready(s.tick)) continue;
+        s.pawns.destroy(p.pawn);
+        p.pawn = {};
+    }
 }
 
-// Someone joined or left mid-match. A leaving player's character is removed (the slot and score remain); a joining player gets one next tick
+void sensePawns(World& world) {
+    const Tuning& t = world.tuning;
+    for (auto [id, pawn] : world.state.pawns) {
+        const bool wasAir = pawn.mover.grounded == 0;
+        mealkit::sim::senseMover(world.physics, pawn.mover, t.move, pawn.position, pawn.velocity);
+        if (pawn.mover.grounded == 0) {
+            pawn.fallSpeed = std::max(pawn.fallSpeed, -pawn.velocity.y);
+            continue;
+        }
+        if (wasAir && pawn.fallSpeed >= t.landSpeed)
+            world.events.push(makeEvent(EventKind::Land, static_cast<u8>(pawn.player), pawn.position, pawn.fallSpeed));
+        pawn.fallSpeed = 0.0f;
+    }
+}
+
+// Someone joined or left mid-match. A leaving person's seat is taken over by a bot (character, fuse and score stay);
+// a joining person takes their seat back, or a new seat that sits the round out until the next one starts
 void setPresence(World& world, const mealkit::sim::Presence& presence) {
     WorldState& s = world.state;
     if (presence.player >= mealkit::net::kMaxPlayers) return;
     PlayerSlot& slot = s.slots[presence.player];
-    slot.connected = presence.connected;
     if (!presence.connected) {
-        if (s.pawns.alive(slot.pawn)) s.pawns.destroy(slot.pawn);
-        slot.pawn = {};
+        slot.bot = true;
         return;
     }
-    s.playerCount = std::max(s.playerCount, presence.player + 1u);
-    slot.respawn = {};
+    slot.bot = false;
+    s.humanCount = std::max(s.humanCount, presence.player + 1u);
+    if (presence.player >= s.playerCount) {
+        s.playerCount = presence.player + 1u;
+        slot.connected = true;
+        slot.out = true; // joins in the next round (resetRound)
+    }
 }
 
 } // namespace fusetag

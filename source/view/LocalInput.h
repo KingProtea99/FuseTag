@@ -5,7 +5,7 @@
 
 #include "mealkit/input/Actions.h"
 
-// Local controls (input actions move/jump, assets/input.bindings) → GameInput (8 bytes).
+// Local controls (input actions move/jump/sprint, assets/input.bindings) → GameInput (8 bytes).
 // The move direction is computed relative to the camera and quantized as a world direction (outside the simulation, so trig is fine).
 namespace fusetag {
 

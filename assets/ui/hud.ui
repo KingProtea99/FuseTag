@@ -1,21 +1,164 @@
-# MealKit UI (hand-written): HUD during a match. View model: HudVm (source/view/Hud.h). Text: assets/strings.
+# MealKit UI (hand-written): HUD during a match: fuse bars, who's it, stamina, round result. View model: HudVm (source/view/Hud.h). Text: assets/strings.
 # Chat lines and the chat input are filled by the screen flow (source/app/Flow.cpp).
 @format ui 1
 board hud 1920 1080
-  frame timePanel
-    pos 840 24
-    size 240 hug
+  frame topBar
+    pos 660 20
+    size 600 hug
     constraints center top
     layout row
     justify center
-    padding 8 16
+    align center
+    gap 18
+    padding 8 20
     fill $panel
     radius $radius
+    text round
+      key hud.round
+      fontSize 26
+      color $textDim
+    end
     text time
       content {time:time}
-      fontSize 40
+      fontSize 36
       color $text
     end
+  end
+  frame fusePanel
+    pos 24 24
+    size 340 hug
+    constraints left top
+    layout column
+    gap 6
+    padding 12 14
+    fill $panel
+    radius $radius
+    list fuses
+    frame row
+      size fill 30
+      layout row
+      align center
+      gap 10
+      frame swatch
+        size 14 14
+        radius 7
+        colorField color
+      end
+      text name
+        size 110 hug
+        content {name}
+        fontSize 20
+        color $text
+        maxLines 1
+        overflow ellipsis
+      end
+      frame track
+        size fill 12
+        fill #FFFFFF18
+        radius 6
+        visible !out
+        clip
+        frame burn
+          size fill fill
+          widthRatio fuse
+          colorField color
+          radius 6
+        end
+      end
+      text out
+        size fill hug
+        key hud.outTag
+        visible out
+        fontSize 18
+        color $textDim
+      end
+      text it
+        key hud.itTag
+        visible it
+        fontSize 18
+        color #FF5A3C
+      end
+    end
+  end
+  frame itBanner
+    pos 610 150
+    size 700 hug
+    constraints center top
+    layout row
+    justify center
+    padding 10 24
+    fill #C2301ED0
+    radius $radius
+    visible meIt
+    text label
+      key hud.itYou
+      fontSize 44
+      color #FFFFFF
+    end
+  end
+  frame itOther
+    pos 710 150
+    size 500 hug
+    constraints center top
+    layout row
+    justify center
+    align center
+    gap 10
+    padding 6 18
+    fill $panel
+    radius $radius
+    visible otherIt
+    frame swatch
+      size 16 16
+      radius 8
+      colorField itColor
+    end
+    text label
+      key hud.itOther
+      fontSize 26
+      color $text
+    end
+  end
+  frame outBanner
+    pos 610 150
+    size 700 hug
+    constraints center top
+    layout row
+    justify center
+    padding 10 24
+    fill $panel
+    radius $radius
+    visible meOut
+    text label
+      key hud.outYou
+      fontSize 34
+      color $textDim
+    end
+  end
+  frame staminaTrack
+    pos 810 1000
+    size 300 10
+    constraints center bottom
+    fill #FFFFFF20
+    radius 5
+    visible !meOut
+    clip
+    frame fill
+      size fill fill
+      widthRatio stamina
+      fill #F5F7FA
+      radius 5
+    end
+  end
+  text winded
+    pos 810 970
+    size 300 hug
+    constraints center bottom
+    key hud.winded
+    visible winded
+    fontSize 20
+    color $textDim
+    textAlign center
   end
   text countdown
     pos 760 360
@@ -24,6 +167,16 @@ board hud 1920 1080
     visible countdown
     content {countdown}
     fontSize 180
+    color $accent
+    textAlign center
+  end
+  text roundWin
+    pos 460 300
+    size 1000 hug
+    constraints center center
+    key hud.roundWin
+    visible roundOver
+    fontSize 72
     color $accent
     textAlign center
   end

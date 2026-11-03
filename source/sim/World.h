@@ -2,11 +2,13 @@
 
 #include "mealkit/asset/ModelCache.h"
 #include "mealkit/core/Math.h"
+#include "mealkit/core/Random.h"
 #include "mealkit/net/Lockstep.h"
 #include "mealkit/physics/PhysicsWorld.h"
 #include "mealkit/scene/Scene.h"
 #include "mealkit/sim/MatchFlow.h"
 #include "mealkit/sim/Movement.h"
+#include "mealkit/sim/NavGrid.h"
 #include "mealkit/sim/Pool.h"
 #include "mealkit/sim/TickEvents.h"
 #include "mealkit/sim/TickTimer.h"
@@ -15,10 +17,11 @@
 
 #include <vector>
 
-// Deterministic simulation (physics: Jolt). Starts as one character per player walking on the scene's solid objects.
+// Deterministic simulation of fuse tag (physics: Jolt). Whoever is "it" carries a burning fuse; tagging someone hands it over,
+// running out of fuse knocks you out of the round, and the last one standing wins (docs/DESIGN.md).
+// Empty seats are bots: their slots are driven by sim/Bots.cpp, so every peer runs the same bots.
 // sim/ folder rules (checked by SimCheck at build time): no CRT trig, real time, rand, renderer/platform headers, or mutable global state.
 // State is declared with MEALKIT_FIELD: the hash (desync detection), snapshots (rewind/shadow simulation), and the editor [State] panel use it as is.
-// Objects created and destroyed mid-match use Pool<T>, "after N ticks" uses TickTimer, and things to tell the view use world.events.
 namespace fusetag {
 
 using mealkit::f32;
@@ -31,6 +34,11 @@ using mealkit::sim::Id;
 using mealkit::sim::TickTimer;
 
 inline constexpr u8 kButtonJump = 1;
+inline constexpr u8 kButtonSprint = 2;
+inline constexpr u8 kButtonAuto = 0x80; // the bot AI drives this player (--bot, headless tests); part of the input, so deterministic
+
+inline constexpr u32 kNoSlot = 0xFFFFFFFFu;
+inline constexpr u32 kBotPathPoints = 12; // waypoints kept per bot (a longer path is searched again later)
 
 // Player input sent over the network (8 bytes). The client turns the camera-relative stick into a quantized world direction.
 struct GameInput {
@@ -41,52 +49,89 @@ struct GameInput {
 };
 static_assert(sizeof(GameInput) == mealkit::net::kInputBytes);
 
-// A character in the world. Disappears when it falls, and a new one appears on respawn.
+// A character in the world. Removed when it falls (back after a respawn wait) or some time after its player blew up.
 MEALKIT_STRUCT(Pawn) {
     MEALKIT_FIELD(u32, player, 0, "플레이어 슬롯");
     MEALKIT_FIELD(Vec3, position, {}, "위치");
     MEALKIT_FIELD(Vec3, velocity, {}, "속도");
     MEALKIT_FIELD(mealkit::sim::Mover, mover, {}, "이동 (모드, 물리 바디, 땅에 닿음)");
+    MEALKIT_FIELD(f32, fallSpeed, 0.0f, "공중에서 가장 빠른 낙하 속도 (m/s, 착지 이벤트)");
 };
 
-// A connected person. Persists through the match.
+// A seat in the match: a person or a bot. Persists through the match (a person who leaves is replaced by a bot).
 MEALKIT_STRUCT(PlayerSlot) {
-    MEALKIT_FIELD(bool, connected, false, "접속");
-    MEALKIT_FIELD(u32, score, 0, "점수");
+    MEALKIT_FIELD(bool, connected, false, "참가");
+    MEALKIT_FIELD(bool, bot, false, "봇");
+    MEALKIT_FIELD(u32, score, 0, "점수 (라운드 순위 점수 합계)");
+    MEALKIT_FIELD(u32, lastPlace, 0, "지난 라운드 순위 (1부터, 0이면 없음)");
     MEALKIT_FIELD(Id<Pawn>, pawn, {}, "캐릭터 (없으면 리스폰 대기)");
     MEALKIT_FIELD(TickTimer, respawn, {}, "리스폰");
+    // Round
+    MEALKIT_FIELD(u32, fuse, 0, "남은 퓨즈 (틱)");
+    MEALKIT_FIELD(bool, it, false, "술래");
+    MEALKIT_FIELD(bool, out, false, "탈락");
+    MEALKIT_FIELD(u32, outOrder, 0, "탈락 순서 (1이 처음, 0이면 살아 있음)");
+    MEALKIT_FIELD(TickTimer, hold, {}, "묶임 (새 술래)");
+    MEALKIT_FIELD(TickTimer, immune, {}, "되잡기 면역");
+    MEALKIT_FIELD(u32, immuneFrom, kNoSlot, "면역 대상 (넘겨받은 술래)");
+    MEALKIT_FIELD(TickTimer, boost, {}, "넘겨준 뒤 빨라짐");
+    MEALKIT_FIELD(TickTimer, remove, {}, "탈락한 캐릭터가 사라지는 때");
+    MEALKIT_FIELD(u32, stamina, 0, "스태미나 (단위: staminaMax×staminaRecover 가 가득)");
+    MEALKIT_FIELD(bool, winded, false, "지침 (가득 찰 때까지 못 달림)");
+    MEALKIT_FIELD(bool, sprinting, false, "달리는 중");
+    MEALKIT_FIELD(u32, tags, 0, "이번 매치에 잡은 횟수");
+    // Bot brain (bots and players with kButtonAuto)
+    MEALKIT_FIELD(TickTimer, botThink, {}, "봇 다음 판단");
+    MEALKIT_FIELD(bool, botRepath, false, "봇 길찾기 대기");
+    MEALKIT_FIELD(Vec3, botGoal, {}, "봇 목표 지점");
+    MEALKIT_FIELD(u32, botTarget, kNoSlot, "봇 술래의 추격 대상");
+    MEALKIT_FIELD(bool, botSprint, false, "봇 달리기");
+    MEALKIT_ARRAY(Vec3, kBotPathPoints, botPath, "봇 경로 지점");
+    MEALKIT_FIELD(u32, botPathCount, 0, "봇 경로 지점 수");
+    MEALKIT_FIELD(u32, botPathNext, 0, "봇 다음 경로 지점");
 };
 
 // Simulation → view notifications (sound/effects). sim/ only writes them. The feedback table (assets/feedback.table) chooses feedback by kind name.
-MEALKIT_ENUM(EventKind, u8, Spawn, Jump, Fall, Countdown, MatchStart, MatchEnd);
+// These are the contract the game feel work builds on (docs/ROADMAP.md M2): add kinds rather than reading state differences in view/.
+MEALKIT_ENUM(EventKind, u8, Spawn, Jump, Land, Fall, Tag, HoldEnd, FuseWarn, FuseDanger, Eliminated, NewIt, SprintStart,
+             StaminaEmpty, RoundWin, Countdown, MatchStart, MatchEnd);
 inline constexpr u8 kNoPlayer = 0xFF;
 
 MEALKIT_STRUCT(GameEvent) {
     MEALKIT_FIELD(EventKind, kind, EventKind::Spawn, "종류");
-    MEALKIT_FIELD(u8, player, kNoPlayer, "플레이어 슬롯");
+    MEALKIT_FIELD(u8, player, kNoPlayer, "플레이어 슬롯 (잡기: 넘겨준 쪽)");
+    MEALKIT_FIELD(u8, other, kNoPlayer, "상대 슬롯 (잡기: 넘겨받은 새 술래)");
     MEALKIT_FIELD(Vec3, position, {}, "위치");
-    MEALKIT_FIELD(f32, value, 0.0f, "카운트다운: 남은 초");
+    MEALKIT_FIELD(f32, value, 0.0f, "카운트다운: 남은 초, 착지: 낙하 속도, 퓨즈 경고: 남은 비율");
 };
 
-inline GameEvent makeEvent(EventKind kind, u8 player, Vec3 position, f32 value) {
+inline GameEvent makeEvent(EventKind kind, u8 player, Vec3 position, f32 value, u8 other = kNoPlayer) {
     GameEvent e;
     e.kind = kind;
     e.player = player;
+    e.other = other;
     e.position = position;
     e.value = value;
     return e;
 }
-inline constexpr u32 kMaxEventsPerTick = 32;
+inline constexpr u32 kMaxEventsPerTick = 64;
 
 // Match phase (engine mealkit/sim/MatchFlow.h, driven by sim/Match.cpp). The screen flow opens the results screen at Results
 using MatchPhase = mealkit::sim::FlowPhase;
 
 MEALKIT_STRUCT(WorldState) {
     MEALKIT_FIELD(u32, tick, 0, "틱");
-    MEALKIT_FIELD(mealkit::sim::MatchFlow, flow, {}, "매치 흐름 (단계, 라운드, 승자)");
-    MEALKIT_FIELD(u32, playerCount, 0, "플레이어 수");
+    MEALKIT_FIELD(mealkit::sim::MatchFlow, flow, {}, "매치 흐름 (단계, 라운드)");
+    MEALKIT_FIELD(u32, playerCount, 0, "참가자 수 (사람 + 봇)");
+    MEALKIT_FIELD(u32, humanCount, 0, "입력을 보내는 사람 수 (앞쪽 슬롯)");
     MEALKIT_ARRAY(PlayerSlot, mealkit::net::kMaxPlayers, slots, "플레이어 슬롯");
     MEALKIT_FIELD(mealkit::sim::Pool<Pawn>, pawns, {}, "캐릭터");
+    MEALKIT_FIELD(u32, itSlot, kNoSlot, "술래 슬롯");
+    MEALKIT_FIELD(u32, roundStart, 0, "라운드 시작 틱");
+    MEALKIT_FIELD(u32, outCount, 0, "이번 라운드 탈락 수");
+    MEALKIT_FIELD(u32, roundWinner, kNoSlot, "지난 라운드 마지막 생존자");
+    MEALKIT_FIELD(u32, swaps, 0, "이번 매치 술래 교체 수");
+    MEALKIT_FIELD(mealkit::Pcg32, rng, {}, "난수 (첫 술래, 봇)");
 };
 
 // The whole simulation. sim/ system functions (Systems.h) take only this (World&).
@@ -95,9 +140,9 @@ struct World {
     World(const World&) = delete;
     World& operator=(const World&) = delete;
 
-    // physicsThreads = 0 matches the core count (results are independent of thread count)
-    void reset(u64 seed, u32 playerCount, const Tuning& tuning, const mealkit::scene::Scene& scene,
-               mealkit::asset::ModelCache& models, u32 tickRate, u32 physicsThreads = 0);
+    // humans = people in the match (input senders); bots fill up to tuning.botFill. physicsThreads = 0 matches the core count
+    void reset(u64 seed, u32 humans, const Tuning& tuning, const mealkit::scene::Scene& scene, mealkit::asset::ModelCache& models,
+               u32 tickRate, u32 physicsThreads = 0);
     // Changes tuning mid-match (editor solo play only)
     void setTuning(const Tuning& value);
     void step(const mealkit::net::TickInputs& inputs);
@@ -108,19 +153,25 @@ struct World {
     u32 tickRate = 30;
     f32 tickDt = 1.0f / 30.0f; // const-ok: default (reset sets it from the project tick rate)
     std::vector<Vec3> spawns;  // the scene's spawn points
+    Vec3 arenaMin, arenaMax;   // MatchArea
     Tuning tuning;
-    mealkit::sim::MatchRules rules; // from tuning (sim/Match.cpp matchRules)
+    mealkit::sim::MatchRules rules;    // from tuning (sim/Match.cpp matchRules)
+    mealkit::sim::NavGrid nav;         // baked from the static scene at reset, same on every peer (not state)
+    mealkit::sim::NavSearch navSearch; // A* scratch memory (not state)
 
     // State
     WorldState state;
-    GameInput inputs[mealkit::net::kMaxPlayers] = {}; // this tick's inputs (filled at the start of step)
+    GameInput inputs[mealkit::net::kMaxPlayers] = {}; // this tick's inputs (filled at the start of step, zero for bot seats)
     mealkit::physics::PhysicsWorld physics;
 
     // This tick's view notifications (cleared at the start of step, not hashed)
     mealkit::sim::TickEvents<GameEvent, kMaxEventsPerTick> events;
 };
 
-// The character a player slot has (nullptr while waiting to respawn). Also used by the view side (read only)
-const Pawn* playerPawn(const WorldState& state, u32 slot);
+// Lookups also used by the view side (read only)
+const Pawn* playerPawn(const WorldState& state, u32 slot); // nullptr while waiting to respawn or after being removed
+bool aliveInRound(const PlayerSlot& slot);                 // connected and not out
+f32 fuseFraction(const World& world, u32 slot);            // 0..1 of the fuse left
+bool botDriven(const World& world, u32 slot);              // a bot seat, or a player whose input asks for the bot AI
 
 } // namespace fusetag

@@ -1,0 +1,305 @@
+# MealKit scene
+@format scene 2
+
+sun 0.400000006 0.800000012 0.300000012
+sunColor 1 0.949999988 0.850000024
+sky 0.300000012 0.379999995 0.5
+groundColor 0.200000003 0.170000002 0.140000001
+fog 0.5 0.620000005 0.779999971 0.00800000038
+
+entity
+id 1
+name Ground
+kind solid
+position 0 -0.5 0
+rotation 0 0 0 1
+scale 44 1 44
+color FF609676
+flags 1
+end
+
+entity
+id 2
+name Wall N
+kind solid
+position 0 1 22.5
+rotation 0 0 0 1
+scale 46 2 1
+color FF8A9099
+flags 1
+end
+
+entity
+id 3
+name Wall S
+kind solid
+position 0 1 -22.5
+rotation 0 0 0 1
+scale 46 2 1
+color FF8A9099
+flags 1
+end
+
+entity
+id 4
+name Wall E
+kind solid
+position 22.5 1 0
+rotation 0 0 0 1
+scale 1 2 44
+color FF8A9099
+flags 1
+end
+
+entity
+id 5
+name Wall W
+kind solid
+position -22.5 1 0
+rotation 0 0 0 1
+scale 1 2 44
+color FF8A9099
+flags 1
+end
+
+entity
+id 6
+name Pillar 1
+kind solid
+position -8 1.5 -8
+rotation 0 0 0 1
+scale 2 3 2
+color FFB0A48C
+flags 1
+end
+
+entity
+id 7
+name Pillar 2
+kind solid
+position 8 1.5 -8
+rotation 0 0 0 1
+scale 2 3 2
+color FFB0A48C
+flags 1
+end
+
+entity
+id 8
+name Pillar 3
+kind solid
+position -8 1.5 8
+rotation 0 0 0 1
+scale 2 3 2
+color FFB0A48C
+flags 1
+end
+
+entity
+id 9
+name Pillar 4
+kind solid
+position 8 1.5 8
+rotation 0 0 0 1
+scale 2 3 2
+color FFB0A48C
+flags 1
+end
+
+entity
+id 10
+name Pillar 5
+kind solid
+position 0 1.5 0
+rotation 0 0 0 1
+scale 2 3 2
+color FFB0A48C
+flags 1
+end
+
+entity
+id 11
+name Low wall 1
+kind solid
+position 0 0.75 -14
+rotation 0 0 0 1
+scale 10 1.5 0.6
+color FF8A9099
+flags 1
+end
+
+entity
+id 12
+name Low wall 2
+kind solid
+position 0 0.75 14
+rotation 0 0 0 1
+scale 10 1.5 0.6
+color FF8A9099
+flags 1
+end
+
+entity
+id 13
+name Low wall 3
+kind solid
+position -14 0.75 0
+rotation 0 0 0 1
+scale 0.6 1.5 10
+color FF8A9099
+flags 1
+end
+
+entity
+id 14
+name Low wall 4
+kind solid
+position 14 0.75 0
+rotation 0 0 0 1
+scale 0.6 1.5 10
+color FF8A9099
+flags 1
+end
+
+entity
+id 15
+name Platform
+kind solid
+position 16 0.75 16
+rotation 0 0 0 1
+scale 8 1.5 8
+color FF7C8CA6
+flags 1
+end
+
+entity
+id 16
+name Ramp W
+kind solid
+position 9 0.75 16
+rotation 0 0 0.122183 0.992508
+scale 6.18466 0.3 3
+color FF7C8CA6
+flags 1
+end
+
+entity
+id 17
+name Ramp S
+kind solid
+position 16 0.75 9
+rotation -0.122183 0 0 0.992508
+scale 3 0.3 6.18466
+color FF7C8CA6
+flags 1
+end
+
+entity
+id 18
+name Step block
+kind solid
+position -16 0.4 -16
+rotation 0 0 0 1
+scale 6 0.8 6
+color FF7C8CA6
+flags 1
+end
+
+entity
+id 19
+name Spawn 1
+kind spawn
+position 11 0.9 0
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 20
+name Spawn 2
+kind spawn
+position 7.78 0.9 7.78
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 21
+name Spawn 3
+kind spawn
+position 0 0.9 11
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 22
+name Spawn 4
+kind spawn
+position -7.78 0.9 7.78
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 23
+name Spawn 5
+kind spawn
+position -11 0.9 0
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 24
+name Spawn 6
+kind spawn
+position -7.78 0.9 -7.78
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 25
+name Spawn 7
+kind spawn
+position -0 0.9 -11
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 26
+name Spawn 8
+kind spawn
+position 7.78 0.9 -7.78
+rotation 0 0 0 1
+scale 1 1 1
+color FF5ADCFF
+flags 0
+end
+
+entity
+id 27
+name Match area
+kind MatchArea
+position 0 4 0
+rotation 0 0 0 1
+scale 44 12 44
+color FF50C8FF
+flags 0
+end

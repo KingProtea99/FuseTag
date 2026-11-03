@@ -71,7 +71,10 @@ void GameSession::update(game::GameContext& ctx, f64 dt) {
         flow.inMatch = true;
         flow.results = s.flow.phase == MatchPhase::Results;
         flow.playerCount = s.playerCount;
-        for (u32 i = 0; i < s.playerCount; ++i) flow.score[i] = s.slots[i].score;
+        for (u32 i = 0; i < s.playerCount; ++i) {
+            flow.score[i] = s.slots[i].score;
+            flow.bots[i] = s.slots[i].bot;
+        }
     }
     m_flow.update(ctx, flow, m_save, m_hudVm, m_hud, dt);
     if (m_flow.takeSaveChanged()) game::writeSave(m_save, ctx.userFolder, "progress", kSaveVersion);
@@ -105,7 +108,9 @@ void GameSession::update(game::GameContext& ctx, f64 dt) {
         for (const GameEvent& e : world.events) ctx.feedback.trigger(e, session.localPlayer());
     };
     if (!m_flow.pausesSimulation()) sim().update(session, dt, sample, onTick); // pause in solo play halts the match
-    fillHud(sim().world().state, sim().world().tuning, m_hudVm);
+    SeatNames names;
+    for (u32 i = 0; i < sim().world().state.playerCount; ++i) names[i] = Flow::seatName(ctx, flow, i);
+    fillHud(sim().world(), session.localPlayer(), names, look.playerColors, m_hudVm);
 }
 
 void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParams& frame, render::DrawList& out) {
@@ -138,7 +143,7 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
     applyProbes(m_scene, ctx.models, m_probes, frame);
     applyLights(m_scene, m_lights, frame);
     drawScene(m_scene, ctx.models, frame.cameraPos, m_viewTime, out);
-    if (sim().started()) drawWorld(sim().previous(), sim().world().state, sim().alpha(), look, ctx.models, out);
+    if (sim().started()) drawWorld(sim().world(), sim().previous(), sim().alpha(), look, m_viewTime, ctx.models, out);
 }
 
 } // namespace fusetag

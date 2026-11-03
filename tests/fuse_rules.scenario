@@ -1,0 +1,12 @@
+# Fuse and placement: the first it is held for startHold, fuses only burn while it, the round winner scores the most.
+seed 7
+tick 3.1s slots[0].fuse == 900
+tick 4s slots[1].fuse == 900
+tick 200s roundWinner == 5
+tick 200s slots[0].score == 4
+tick 200s slots[1].score == 7
+tick 200s slots[2].score == 3
+tick 200s slots[3].score == 2
+tick 200s slots[4].score == 5
+tick 200s slots[5].score == 10
+tick 200s slots[0].lastPlace == 4

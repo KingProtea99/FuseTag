@@ -13,6 +13,15 @@ title.waiting = 호스트가 시작하기를 기다리는 중 (로비 {count}명
 title.ended = 끝남: {reason}
 
 hud.you = 나
+player.bot = 봇 {n}
+hud.round = 라운드 {round}/{rounds}
+hud.itYou = 네가 술래야! 잡아서 넘겨!
+hud.itOther = {itName} 술래
+hud.itTag = 술래
+hud.outTag = 탈락
+hud.outYou = 펑! 탈락 - 관전 중
+hud.winded = 숨 고르는 중
+hud.roundWin = {winnerName} 생존!
 
 settings.title = 설정
 settings.tab.display = 화면
@@ -115,7 +124,7 @@ pause.leave = 나가기
 results.title = 결과
 results.winner = 우승
 results.rank = {rank}위
-results.score = {score}번 떨어짐
+results.score = {score}점
 results.lobby = 로비로
 results.auto = {secondsLeft}초 뒤 로비로
 results.wait = 방장이 로비로 돌아가기를 기다리는 중
