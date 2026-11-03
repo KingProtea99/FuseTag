@@ -1,0 +1,42 @@
+# MealKit table (AnimState). Edit it in the editor's [Tables] panel. Row id = <set>.<state>; the first row of a set is its entry state.
+# Clips come from models/runner.glb (art/blender/make_models.py). Parameters are set by view/Draw.cpp drawWorld every frame:
+# speed (m/s), air (1 off the ground), fuming (held after a tag), hiding, cheer; triggers: shove.
+@format table 1
+
+row runner.idle
+clip idle
+transitions air if air; fume if fuming; crouch if hiding; cheer if cheer; move if speed > 0.6; shove on shove
+
+row runner.move
+clip idle 0 run 4 sprint 9
+blendParam speed
+blendIn 0.15
+transitions air if air; fume if fuming; crouch if hiding; idle if speed < 0.4; shove on shove
+events 0.25 Footstep 0.75 Footstep
+
+row runner.air
+clip fall
+blendIn 0.12
+transitions idle if !air; shove on shove
+
+row runner.fume
+clip fume
+blendIn 0.08
+transitions idle if !fuming
+
+row runner.crouch
+clip crouch
+loop false
+blendIn 0.2
+transitions idle if !hiding
+
+row runner.shove
+clip shove
+loop false
+blendIn 0.05
+transitions idle if end
+
+row runner.cheer
+clip cheer
+blendIn 0.2
+transitions idle if !cheer

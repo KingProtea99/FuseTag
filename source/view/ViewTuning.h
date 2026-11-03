@@ -144,7 +144,16 @@ using PlayerColors = std::array<Color, mealkit::net::kMaxPlayers>;
 
 MEALKIT_STRUCT(ViewTuning) {
     MEALKIT_FIELD(CameraTuning, camera, {}, "카메라");
-    MEALKIT_FIELD(Vec3, pawnSize, (Vec3{0.8f, 1.8f, 0.8f}), "캐릭터 크기 (m, 상자로 그린다)");
+    MEALKIT_FIELD(Vec3, pawnSize, (Vec3{0.8f, 1.8f, 0.8f}), "캐릭터 크기 (m, 모델이 없을 때 상자로 그린다)");
+    MEALKIT_FIELD(std::string, pawnModel, "models/characters/runner.glb", "캐릭터 모델 (스킨, 비우면 상자)");
+    MEALKIT_FIELD(std::string, animSet, "runner", "애니메이션 표의 세트 (tables/animation.table)");
+    MEALKIT_FIELD(f32, footOffset, 0.9f, "캐릭터 중심에서 발까지 (m)");
+    MEALKIT_FIELD(f32, turnSpeed, 14.0f, "이동 방향으로 도는 빠르기 (1/s)");
+    MEALKIT_FIELD(std::string, bombModel, "models/bomb.glb", "폭탄 모델");
+    MEALKIT_FIELD(std::string, crateModel, "models/item_crate.glb", "아이템 상자 모델");
+    MEALKIT_FIELD(std::string, bushModel, "models/bush.glb", "덤불 모델 (숨는 곳 크기에 맞춰 늘린다)");
+    MEALKIT_FIELD(std::string, lockerModel, "models/locker.glb", "사물함 모델");
+    MEALKIT_FIELD(std::string, pileModel, "models/pile.glb", "눈더미 모델");
     MEALKIT_FIELD(PlayerColors, playerColors,
                   (PlayerColors{Color::rgb(66, 135, 245), Color::rgb(235, 64, 52), Color::rgb(52, 199, 89),
                                 Color::rgb(250, 204, 21), Color::rgb(168, 85, 247), Color::rgb(236, 72, 153),

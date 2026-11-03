@@ -152,12 +152,18 @@ Goal: with graybox art still, a muted video of a round reads clearly: who is it,
 
 Goal: replace capsules and boxes with the final look. Decided before maps so all three maps share it.
 
+- [x] Style decided (toon lighting `lightingModel Toon`, outlines and rim through material properties, white bodies tinted by player color); written down in `art/blender/make_models.py`
 - [ ] Style sheet (`art/style/`): Toon lighting with outline, chunky rounded characters, bright player colors on muted environments, one accent color for "danger" (bomb, fuse, it marker).
-- [ ] Character model (Blender, glTF): round body, big eyes, short limbs so squash and stretch read well; 8 color variants; simple face states (normal, scared when it is near, smug after a tag, panicked when it).
-- [ ] Animations (engine animation states): idle, run, sprint, jump, fall, land, hold-fuming, carry-bomb overlay, shove, hide, celebrate, eliminated pose. Squash and stretch from M2 is layered on top.
-- [ ] Bomb, crate, item models; particle textures (spark, smoke, star, leaf, snow, dust).
+- [x] Character model `models/characters/runner.glb` (round body, big eyes, hands and feet, 6 bones), built by `art/blender/make_models.py`
+- [ ] Character model extras: round body, big eyes, short limbs so squash and stretch read well; 8 color variants; simple face states (normal, scared when it is near, smug after a tag, panicked when it).
+- [x] Animations in `tables/animation.table`: idle, run/sprint blend, air, fume (held), shove, crouch (hidden), cheer (round winner), footstep events
+- [ ] Animations still missing: idle, run, sprint, jump, fall, land, hold-fuming, carry-bomb overlay, shove, hide, celebrate, eliminated pose. Squash and stretch from M2 is layered on top.
+- [x] Bomb, item crate, bush, locker, snow pile models (hide spots scaled to their areas)
+- [ ] Item icons, particle textures (spark, smoke, star, leaf, snow, dust).
 - [ ] UI style: chunky rounded panels, bold numbers, fuse bars that look like burning fuses; Penpot sources in `art/ui/`.
-- [ ] Sounds: footsteps per surface, fuse hiss, tag, boom, UI clicks; a short upbeat match loop and a tense last-two loop (switch on `NewIt` when two are left).
+- [x] Sounds: 30 synthesized clips (`art/sounds/make_sounds.py`), events in `assets/sounds.events`, feedback rows, footsteps from animation, bomb tick pitched by fuse, heartbeat, 3-stem music with a tension parameter from the fuse
+- [ ] Sounds, later: footsteps per surface, fuse hiss, tag, boom, UI clicks; a short upbeat match loop and a tense last-two loop (switch on `NewIt` when two are left).
+- [x] Benchmark (6 characters, Intel Core Ultra 5 125U iGPU, 1280×720): 1.50 ms avg, 1% worst 2.55 ms, GPU 1.42 ms of 8 ms
 - [ ] Benchmark with 8 characters + all effects on minimum spec.
 
 ---

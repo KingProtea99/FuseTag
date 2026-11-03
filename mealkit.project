@@ -6,3 +6,10 @@ engineVersion 0.9.0
 scene scenes/graybox.scene
 templateName empty
 created 2026-11-03
+lightingModel Toon
+packInclude models/characters/runner.glb
+packInclude models/bomb.glb
+packInclude models/item_crate.glb
+packInclude models/bush.glb
+packInclude models/locker.glb
+packInclude models/pile.glb

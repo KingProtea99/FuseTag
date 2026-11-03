@@ -58,7 +58,8 @@ private:
     mealkit::f64 m_cameraTime = 0.0, m_menuTime = 0.0;      // last buildFrame times (camera dt)
     mealkit::f64 m_viewTime = 0.0;                          // clock for view animation (sum of update dt, stops in hitstop)
     mealkit::f64 m_juiceTime = 0.0;                         // m_viewTime at the last juice update
-    Juice m_juice;                                          // squash and stretch, bomb, lights, screen kicks (view/Juice.h)
+    Juice m_juice;
+    CharacterView m_chars; // skinned characters: animation state per player                                          // squash and stretch, bomb, lights, screen kicks (view/Juice.h)
     WorldState m_frozenPrevious, m_frozenCurrent;           // the picture held during hitstop
     mealkit::f32 m_frozenAlpha = 0.0f;
     bool m_frozen = false;

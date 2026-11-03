@@ -1,0 +1,262 @@
+# MealKit audio events. Edit them in MealKit Audio or by hand: "event|mixbus|snapshot|music <name>", then "key value" lines.
+# Clips are made by art/sounds/make_sounds.py.
+@format audio-events 2
+
+mixbus music
+duckBy voice
+duckVolume 0.4
+duckRelease 1.0
+
+mixbus sfx
+reverb true
+
+snapshot pause
+fade 0.25
+volume music 0.6
+lowpass music 1500
+volume sfx 0.7
+lowpass sfx 900
+
+music chase
+stems sounds/music_bass.wav sounds/music_drums.wav sounds/music_lead.wav
+stemParam tension
+stemFade 1.5
+volume 0.4
+
+event tag
+clips sounds/tag.wav
+volume 0.9
+pitchRandom 0.05
+minDistance 4
+maxDistance 50
+priority 90
+maxInstances 3
+
+event blast
+clips sounds/blast.wav
+volume 1
+pitchRandom 0.06
+minDistance 6
+maxDistance 80
+priority 95
+maxInstances 2
+
+event bombTick
+clips sounds/bomb_tick.wav
+volume 0.5
+param fuse
+paramMin 0
+paramMax 1
+pitchAtMin 1.6
+pitchAtMax 1
+volumeAtMin 0.9
+volumeAtMax 0.5
+minDistance 3
+maxDistance 30
+priority 60
+maxInstances 2
+steal oldest
+
+event alarm
+clips sounds/alarm.wav
+volume 0.7
+minDistance 4
+maxDistance 40
+priority 85
+maxInstances 1
+
+event heartbeat
+clips sounds/heartbeat.wav
+volume 0.8
+spatial false
+priority 80
+maxInstances 1
+
+event jump
+clips sounds/jump.wav
+volume 0.6
+pitchRandom 0.08
+minDistance 3
+maxDistance 30
+priority 40
+maxInstances 4
+
+event land
+clips sounds/land.wav
+volume 0.7
+param speed
+paramMin 6
+paramMax 16
+volumeAtMin 0.4
+volumeAtMax 1
+pitchRandom 0.08
+minDistance 3
+maxDistance 30
+priority 40
+maxInstances 4
+
+event step
+clips sounds/step_1.wav sounds/step_2.wav sounds/step_3.wav
+container random
+volume 0.45
+volumeRandom 0.15
+pitchRandom 0.1
+minDistance 2
+maxDistance 22
+priority 20
+maxInstances 8
+steal quietest
+
+event sprint
+clips sounds/sprint.wav
+volume 0.4
+pitchRandom 0.1
+minDistance 2
+maxDistance 20
+priority 20
+maxInstances 3
+
+event winded
+clips sounds/winded.wav
+volume 0.5
+minDistance 2
+maxDistance 15
+priority 25
+maxInstances 2
+
+event rustle
+clips sounds/rustle.wav
+volume 0.6
+pitchRandom 0.12
+minDistance 2
+maxDistance 20
+priority 35
+maxInstances 4
+
+event found
+clips sounds/found.wav
+volume 0.8
+minDistance 4
+maxDistance 40
+priority 80
+maxInstances 2
+
+event shove
+clips sounds/shove.wav
+volume 0.7
+pitchRandom 0.08
+minDistance 3
+maxDistance 35
+priority 60
+maxInstances 4
+
+event shoveHit
+clips sounds/shove_hit.wav
+volume 0.8
+pitchRandom 0.08
+minDistance 3
+maxDistance 35
+priority 70
+maxInstances 4
+
+event impact
+clips sounds/impact.wav
+param speed
+paramMin 3
+paramMax 12
+volumeAtMin 0.25
+volumeAtMax 1
+pitchAtMin 1.15
+pitchAtMax 0.9
+pitchRandom 0.08
+minDistance 3
+maxDistance 35
+priority 30
+maxInstances 6
+steal quietest
+
+event pickup
+clips sounds/pickup.wav
+volume 0.7
+minDistance 3
+maxDistance 30
+priority 65
+maxInstances 3
+
+event itemUse
+clips sounds/item_use.wav
+volume 0.7
+pitchRandom 0.05
+minDistance 3
+maxDistance 35
+priority 65
+maxInstances 3
+
+event snareSet
+clips sounds/snare_set.wav
+volume 0.6
+minDistance 2
+maxDistance 20
+priority 40
+maxInstances 2
+
+event snareSnap
+clips sounds/snare_snap.wav
+volume 0.9
+minDistance 4
+maxDistance 40
+priority 80
+maxInstances 2
+
+event crateBack
+clips sounds/crate_back.wav
+volume 0.5
+minDistance 3
+maxDistance 25
+priority 30
+maxInstances 2
+
+event countdown
+clips sounds/countdown.wav
+volume 0.7
+spatial false
+bus ui
+priority 90
+maxInstances 1
+
+event go
+clips sounds/go.wav
+volume 0.8
+spatial false
+bus ui
+priority 90
+maxInstances 1
+
+event roundWin
+clips sounds/round_win.wav
+volume 0.75
+spatial false
+bus voice
+priority 95
+maxInstances 1
+
+event ui_click
+clips sounds/ui_click.wav
+spatial false
+bus ui
+priority 90
+maxInstances 2
+
+event ui_confirm
+clips sounds/ui_confirm.wav
+spatial false
+bus ui
+priority 90
+maxInstances 2
+
+event ui_back
+clips sounds/ui_back.wav
+spatial false
+bus ui
+priority 90
+maxInstances 2

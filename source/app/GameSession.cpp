@@ -4,6 +4,7 @@
 
 #include "mealkit/sim/Commands.h"
 
+#include "mealkit/audio/Audio.h"
 #include "mealkit/feedback/Feedback.h"
 #include "mealkit/game/GameData.h"
 #include "mealkit/game/Save.h"
@@ -48,11 +49,15 @@ void GameSession::start(game::GameContext& ctx, const scene::Scene& scene, const
     m_camera.load(m_scene, ctx.viewTuning<ViewTuning>().camera);
     m_input.clearLatches();
     m_juice.reset();
+    m_chars = CharacterView{};
+    m_chars.states.load(); // assets/tables/animation.table
     m_frozen = false;
     m_hudVm = {};
     loadSave(ctx.userFolder);
     ++m_save.matchesStarted;
     game::writeSave(m_save, ctx.userFolder, "progress", kSaveVersion);
+    ctx.audio.setGlobalParam("tension", 0.0f);
+    ctx.audio.playMusic("chase"); // assets/sounds.events: bass first, drums and lead come in with the tension parameter
     if (!ctx.ui.isOpen(m_hud)) m_hud = ctx.ui.open("ui/hud.ui");
     ctx.ui.bind(m_hud, m_hudVm);
 }
@@ -60,6 +65,7 @@ void GameSession::start(game::GameContext& ctx, const scene::Scene& scene, const
 // Match end (back to lobby, left, disconnected): discard the World and close match screens
 void GameSession::stop(game::GameContext& ctx) {
     sim().stop();
+    ctx.audio.stopMusic(1.0f);
     if (m_hud) ctx.ui.close(m_hud);
     m_hud = 0;
     m_flow.stop(ctx);
@@ -101,7 +107,8 @@ void GameSession::update(game::GameContext& ctx, f64 dt) {
         if (ctx.actions.pressed("menu.settings")) ctx.settings.open(); // standard settings screen
     } else
         m_camera.release(ctx.window);
-    if (!ctx.feedback.hitStop()) m_viewTime += dt; // hitstop freezes only the view (the simulation continues)
+    if (!ctx.feedback.hitStop()) m_viewTime += dt;
+    m_chars.states.poll(dt); // edits to animation.table apply while playing // hitstop freezes only the view (the simulation continues)
 
     // Every confirmed tick: build and send local input, and pass tick events to the feedback table (sound, shake, flash)
     auto sample = [&](u32 tick) {
@@ -153,6 +160,12 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
         m_juice.update(sim().world(), m_pawnAt, m_pawnHas, static_cast<f32>(m_viewTime - m_juiceTime), m_viewTime, look.juice);
         m_juiceTime = m_viewTime;
         for (const Vec3& p : m_juice.sparks) ctx.feedback.playEffect("spark", p);
+        for (const auto& [at, fuse] : m_juice.ticks) ctx.audio.play("bombTick", at, {{"fuse", fuse}});
+        if (m_juice.heartbeat) ctx.audio.play2D("heartbeat");
+        // Music tension: the stems come in as the it player's fuse burns down
+        const WorldState& ws = sim().world().state;
+        const f32 tension = ws.flow.phase == MatchPhase::Playing && ws.itSlot != kNoSlot ? 1.0f - fuseFraction(sim().world(), ws.itSlot) : 0.0f;
+        ctx.audio.setGlobalParam("tension", 0.2f + 0.8f * tension);
 
         // The camera follows my character. While waiting to respawn it stays at the last spot
         const u32 local = ctx.session.localPlayer();
@@ -180,10 +193,11 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
     drawScene(m_scene, ctx.models, frame.cameraPos, m_viewTime, out);
     if (sim().started()) {
         const WorldState& shown = m_frozen ? m_frozenCurrent : sim().world().state;
-        drawHideSpots(sim().world(), look, m_juice, ctx.models, out);
-        drawItems(shown, look, m_viewTime, ctx.models, out);
+        drawHideSpots(sim().world(), look, m_juice, frame.cameraPos, ctx.models, out);
+        drawItems(shown, look, m_viewTime, frame.cameraPos, ctx.models, out);
         drawProps(m_frozen ? m_frozenPrevious : sim().previous(), shown, m_frozen ? m_frozenAlpha : sim().alpha(), ctx.models, out);
-        drawWorld(shown, m_pawnAt, m_pawnHas, ctx.session.localPlayer(), look, m_juice, ctx.models, out);
+        drawWorld(shown, m_pawnAt, m_pawnHas, ctx.session.localPlayer(), look, m_juice, m_chars, m_viewTime, ctx.models, out);
+        for (const auto& [row, at] : m_chars.events) ctx.feedback.play(row, at); // footsteps from the animation table
     }
 }
 

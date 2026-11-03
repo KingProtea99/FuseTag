@@ -2,9 +2,26 @@
 
 #include "mealkit/render/SceneLights.h"
 
+#include <algorithm>
+#include <cmath>
+
 using namespace mealkit;
 
 namespace fusetag {
+namespace {
+
+// A static model, or a box when the model is missing (first run before the art exists, or a bad path)
+void addModelOrBox(asset::ModelCache& models, const std::string& file, const Vec3& eye, const render::InstanceData& instance,
+                   render::DrawList& out) {
+    const asset::Model* model = file.empty() ? nullptr : models.get(file);
+    if (!model || model->skinned()) {
+        out.add(models.boxMesh(), instance);
+        return;
+    }
+    asset::addModel(out, *model, models.pickLod(*model, eye, instance.position, instance.scale), instance);
+}
+
+} // namespace
 
 void applyEnvironment(const scene::Environment& env, asset::ModelCache& models, render::FrameParams& frame) {
     frame.sunDirection = env.sunDirection;
@@ -65,8 +82,8 @@ void pawnPositions(const WorldState& previous, const WorldState& current, f32 al
     }
 }
 
-void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juice, asset::ModelCache& models, render::DrawList& out) {
-    const render::MeshId box = models.boxMesh();
+void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juice, const Vec3& eye, asset::ModelCache& models,
+                   render::DrawList& out) {
     for (u32 i = 0; i < world.hideSpots.size(); ++i) {
         const World::HideArea& a = world.hideSpots[i];
         const Vec3 size = a.max - a.min;
@@ -74,13 +91,23 @@ void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juic
         Quat tilt;
         juice.spotLook(i, wobble, tilt);
         const Vec3 drawn{size.x * wobble.x, size.y * wobble.y, size.z * wobble.z};
-        const Vec3 center{(a.min.x + a.max.x) * 0.5f, a.min.y + drawn.y * 0.5f, (a.min.z + a.max.z) * 0.5f};
-        const Color c = a.kind == HideKind::Bush ? look.juice.bushColor : a.kind == HideKind::Locker ? look.juice.lockerColor : look.juice.pileColor;
-        out.add(box, {center, c.value, tilt, drawn, 0});
+        const Vec3 floor{(a.min.x + a.max.x) * 0.5f, a.min.y, (a.min.z + a.max.z) * 0.5f};
+        const std::string& file = a.kind == HideKind::Bush ? look.bushModel : a.kind == HideKind::Locker ? look.lockerModel : look.pileModel;
+        const asset::Model* model = file.empty() ? nullptr : models.get(file);
+        if (!model) { // no art: a tinted box of the area
+            const Color c = a.kind == HideKind::Bush ? look.juice.bushColor : a.kind == HideKind::Locker ? look.juice.lockerColor : look.juice.pileColor;
+            out.add(models.boxMesh(), {floor + Vec3{0.0f, drawn.y * 0.5f, 0.0f}, c.value, tilt, drawn, 0});
+            continue;
+        }
+        // Models are about 1 m wide with their origin on the floor: scale the footprint and height to the area
+        const Vec3 extent = model->boundsMax - model->boundsMin;
+        const Vec3 scale{drawn.x / std::max(extent.x, 0.01f), drawn.y / std::max(extent.y, 0.01f), drawn.z / std::max(extent.z, 0.01f)};
+        addModelOrBox(models, file, eye, {floor - Vec3{0.0f, model->boundsMin.y * scale.y, 0.0f}, 0xFFFFFFFFu, tilt, scale, 0}, out);
     }
 }
 
-void drawItems(const WorldState& current, const ViewTuning& look, f64 viewTime, asset::ModelCache& models, render::DrawList& out) {
+void drawItems(const WorldState& current, const ViewTuning& look, f64 viewTime, const Vec3& eye, asset::ModelCache& models,
+               render::DrawList& out) {
     const render::MeshId box = models.boxMesh();
     const f32 time = static_cast<f32>(viewTime);
     for (auto [id, crate] : current.crates) {
@@ -90,7 +117,7 @@ void drawItems(const WorldState& current, const ViewTuning& look, f64 viewTime, 
         const Quat rot = quatFromAxisAngle({0, 1, 0}, phase * look.juice.crateSpin) * quatFromAxisAngle(normalize(Vec3{1, 0, 1}), 0.4f); // const-ok: tilted
         const f32 glint = std::sin(phase * 3.0f) > 0.95f ? 0.6f : 0.0f; // const-ok: a short glint now and then
         const f32 sz = look.juice.crateSize;
-        out.add(box, {at, look.juice.crateColor.value, rot, Vec3{sz, sz, sz}, render::instanceFlash(0, glint)});
+        addModelOrBox(models, look.crateModel, eye, {at, look.juice.crateColor.value, rot, Vec3{sz, sz, sz}, render::instanceFlash(0, glint)}, out);
     }
     for (auto [id, trap] : current.traps) {
         const bool armed = trap.armed.ready(current.tick);
@@ -110,8 +137,17 @@ void drawProps(const WorldState& previous, const WorldState& current, f32 alpha,
 }
 
 void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayers>& at, const std::array<bool, net::kMaxPlayers>& has,
-               u32 local, const ViewTuning& look, const Juice& juice, asset::ModelCache& models, render::DrawList& out) {
+               u32 local, const ViewTuning& look, const Juice& juice, CharacterView& chars, f64 viewTime, asset::ModelCache& models,
+               render::DrawList& out) {
     const render::MeshId box = models.boxMesh();
+    const asset::Model* figure = look.pawnModel.empty() ? nullptr : models.get(look.pawnModel);
+    if (figure && !figure->skinned()) figure = nullptr;
+    const i32 set = figure ? chars.states.findSet(look.animSet) : -1;
+    // Animation advances by view time (stops during hitstop like the rest of the view)
+    const f32 dt = chars.time < 0.0 ? 0.0f : static_cast<f32>(std::clamp(viewTime - chars.time, 0.0, 0.1));
+    chars.time = viewTime;
+    chars.events.clear();
+    thread_local std::vector<std::string> fired;
     for (u32 slot = 0; slot < net::kMaxPlayers; ++slot) {
         if (!has[slot]) continue;
         const PlayerSlot& p = current.slots[slot];
@@ -125,10 +161,43 @@ void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayer
             l.scale = l.scale * look.juice.hiddenSelfScale;
             l.flash = std::max(l.flash, look.juice.hiddenSelfFlash);
         }
-        const Vec3 size{look.pawnSize.x * l.scale.x, look.pawnSize.y * l.scale.y, look.pawnSize.z * l.scale.z};
-        // Squash about the feet: the box center moves down as it squashes
-        const Vec3 center = at[slot] + l.offset + Vec3{0.0f, (size.y - look.pawnSize.y) * 0.5f, 0.0f};
-        out.add(box, {center, color.value, l.rotation, size, render::instanceFlash(0, l.flash)});
+        if (!figure) { // no art: a box, squashed about the feet
+            const Vec3 size{look.pawnSize.x * l.scale.x, look.pawnSize.y * l.scale.y, look.pawnSize.z * l.scale.z};
+            const Vec3 center = at[slot] + l.offset + Vec3{0.0f, (size.y - look.pawnSize.y) * 0.5f, 0.0f};
+            out.add(box, {center, color.value, l.rotation, size, render::instanceFlash(0, l.flash)});
+            continue;
+        }
+        // Face the way the character moves (from this frame's interpolated motion), turning smoothly
+        f32& yaw = chars.yaw[slot];
+        const Vec3 move = juice.velocity(slot);
+        const f32 speed = std::sqrt(move.x * move.x + move.z * move.z);
+        if (!chars.seen[slot]) chars.anims[slot] = {};
+        chars.seen[slot] = true;
+        if (speed > 0.5f) { // const-ok: below this the character keeps facing where it was going
+            const f32 want = std::atan2(move.x, move.z);
+            f32 d = want - yaw;
+            while (d > 3.14159265f) d -= 6.28318531f;
+            while (d < -3.14159265f) d += 6.28318531f;
+            yaw += d * std::min(1.0f, look.turnSpeed * dt);
+        }
+        asset::AnimParams& params = chars.params[slot];
+        params.set("speed", speed);
+        params.set("air", std::fabs(move.y) > 1.5f); // const-ok: rising or falling fast
+        params.set("fuming", p.it && !p.hold.ready(current.tick));
+        params.set("hiding", p.hidden);
+        params.set("cheer", current.flow.phase == MatchPhase::RoundEnd && current.roundWinner == slot);
+        if (juice.shoved(slot)) params.trigger("shove");
+        fired.clear();
+        asset::updateAnim(chars.states, set, figure->clips, chars.anims[slot], params, dt, &fired);
+        for (std::string& e : fired) chars.events.emplace_back(std::move(e), at[slot]);
+        thread_local std::vector<asset::JointPose> pose;
+        thread_local std::vector<asset::BoneMatrix> palette;
+        asset::animPose(chars.states, figure->skeleton, figure->clips, chars.anims[slot], pose);
+        asset::skinPalette(figure->skeleton, pose, palette);
+        const Quat facing = quatFromAxisAngle({0, 1, 0}, yaw);
+        const Vec3 feet = at[slot] + l.offset - Vec3{0.0f, look.footOffset, 0.0f};
+        out.addSkinned(figure->lods[0], {feet, color.value, normalize(facing * l.rotation), l.scale, render::instanceFlash(0, l.flash)},
+                       palette.data(), static_cast<u32>(palette.size()));
     }
     // Afterimages: smaller, fading copies behind the one who passed the bomb on
     static thread_local std::vector<Juice::Ghost> ghosts;
@@ -154,8 +223,12 @@ void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayer
     }
     Vec3 bombAt;
     f32 bombScale = 0.0f, bombFlash = 0.0f;
-    if (juice.bomb(bombAt, bombScale, bombFlash))
-        out.add(box, {bombAt, look.juice.bombColor.value, Quat{}, Vec3{bombScale, bombScale, bombScale}, render::instanceFlash(0, bombFlash)});
+    if (juice.bomb(bombAt, bombScale, bombFlash)) {
+        const bool model = !look.bombModel.empty() && models.get(look.bombModel);
+        const u32 tint = model ? 0xFFFFFFFFu : look.juice.bombColor.value; // the model has its own colors
+        addModelOrBox(models, look.bombModel, bombAt, {bombAt, tint, Quat{}, Vec3{bombScale, bombScale, bombScale}, render::instanceFlash(0, bombFlash)},
+                      out);
+    }
 }
 
 } // namespace fusetag

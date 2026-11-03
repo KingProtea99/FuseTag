@@ -84,7 +84,10 @@ void Juice::onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 
         if (fx) fx->squash.kick(t.shoveKick * 0.6f);
         break;
     case EventKind::Shove:
-        if (fx) fx->squash.kick(t.shoveKick);
+        if (fx) {
+            fx->squash.kick(t.shoveKick);
+            fx->shoveTrigger = true;
+        }
         break;
     case EventKind::ShoveHit:
         if (fx) {
@@ -135,6 +138,8 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
     m_has = has;
     const WorldState& s = world.state;
     sparks.clear();
+    ticks.clear();
+    heartbeat = false;
     if (dt <= 0.0f) return; // hitstop: everything holds still
     dt = std::min(dt, 0.05f); // const-ok: stalls don't explode the springs
 
@@ -145,7 +150,12 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
     m_localIt = m_local < s.playerCount && s.slots[m_local].it;
     m_fuseLeft = s.itSlot != kNoSlot ? fuseFraction(world, s.itSlot) : 1.0f;
     const f32 pulseRate = t.bombPulseSlow + (t.bombPulseFast - t.bombPulseSlow) * (1.0f - m_fuseLeft);
+    const f32 before = m_pulsePhase;
     m_pulsePhase = std::fmod(m_pulsePhase + pulseRate * dt, 1.0f);
+    if (m_pulsePhase < before && s.itSlot != kNoSlot && has[s.itSlot]) { // a new pulse
+        ticks.emplace_back(positions[s.itSlot], m_fuseLeft);
+        heartbeat = m_localIt && m_fuseLeft < t.bombFlashBelow;
+    }
 
     for (u32 slot = 0; slot < net::kMaxPlayers; ++slot) {
         PawnFx& fx = m_pawns[slot];
@@ -212,6 +222,12 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
     m_fov.update(t.fovSpeed * std::min(mySpeed / t.runSpeed, 1.0f), t.fovFrequency, t.fovDamping, dt);
 
     m_lights.erase(std::remove_if(m_lights.begin(), m_lights.end(), [now](const Light& l) { return now >= l.end; }), m_lights.end());
+}
+
+bool Juice::shoved(u32 slot) const {
+    if (slot >= m_pawns.size() || !m_pawns[slot].shoveTrigger) return false;
+    m_pawns[slot].shoveTrigger = false;
+    return true;
 }
 
 PawnLook Juice::look(u32 slot) const {

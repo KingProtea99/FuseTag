@@ -4,6 +4,7 @@
 @format table 1
 
 row Tag
+sound tag
 effect star
 shake 0.08
 shakeSeconds 0.2
@@ -27,6 +28,7 @@ flashColor #FF6040
 hitStop 0.08
 
 row Eliminated
+sound blast
 effect blast
 shake 0.45
 shakeSeconds 0.45
@@ -45,6 +47,8 @@ flashColor #FF8A30
 hitStop 0.12
 
 row Land
+sound land
+soundParam speed
 effect dust
 strengthFrom value
 strengthFull 14
@@ -57,15 +61,19 @@ flashSeconds 0.2
 flashColor #FF3020
 
 row RoundWin
+sound roundWin
 effect star
 
 row Hide
+sound rustle
 effect leaves
 
 row Unhide
+sound rustle
 effect leaves
 
 row Found
+sound found
 effect leaves
 shake 0.1
 shakeRange 12
@@ -74,6 +82,7 @@ row Found.star
 effect star
 
 row Shove
+sound shove
 effect dust
 shake 0.06
 shakeRange 10
@@ -85,22 +94,28 @@ shakeSeconds 0.2
 hitStop 0.05
 
 row Impact
+sound impact
+soundParam speed
 effect dust
 strengthFrom value
 strengthFull 8
 
 row Pickup
+sound pickup
 effect star
 
 row ItemUse
+sound itemUse
 effect spark
 shake 0.05
 shakeRange 8
 
 row TrapSet
+sound snareSet
 effect dust
 
 row Snared
+sound snareSnap
 effect star
 shake 0.12
 shakeRange 10
@@ -113,4 +128,34 @@ flashSeconds 0.15
 flashColor #FF9040
 
 row CrateBack
+sound crateBack
 effect spark
+
+row Jump
+sound jump
+
+row SprintStart
+sound sprint
+
+row StaminaEmpty
+sound winded
+
+row ShoveHit
+sound shoveHit
+
+row FuseWarn
+sound alarm
+
+row FuseDanger
+sound alarm
+
+row Countdown
+positionFrom
+sound countdown
+
+row MatchStart
+positionFrom
+sound go
+
+row Footstep
+sound step

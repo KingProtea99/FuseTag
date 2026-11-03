@@ -52,6 +52,8 @@ public:
                 const std::array<bool, mealkit::net::kMaxPlayers>& has, f32 dt, f64 now, const JuiceTuning& t);
 
     PawnLook look(u32 slot) const;
+    Vec3 velocity(u32 slot) const { return slot < m_pawns.size() ? m_pawns[slot].lastVelocity : Vec3{}; } // from interpolated motion
+    bool shoved(u32 slot) const; // true once after this player shoved (animation trigger)
     // Where the bomb is drawn (above the it player, or flying between two players after a tag). false = no bomb
     bool bomb(Vec3& at, f32& scale, f32& flash) const;
     void addLights(std::vector<mealkit::render::PointLight>& lights) const;
@@ -90,6 +92,7 @@ private:
         std::array<Vec3, 8> trail{}; // afterimage positions, newest first
         u32 trailCount = 0;
         f64 nextTrail = 0.0;
+        mutable bool shoveTrigger = false; // consumed by shoved() during drawing
     };
     struct Light {
         mealkit::render::PointLight light;
@@ -125,6 +128,9 @@ private:
 public:
     // Sparks to spawn this frame at the bomb's fuse (GameSession plays them through ctx.feedback.playEffect)
     std::vector<Vec3> sparks;
+    // Bomb pulses this frame (position, fuse left 0..1) for the tick sound, and whether my heartbeat beats this frame
+    std::vector<std::pair<Vec3, f32>> ticks;
+    bool heartbeat = false;
 };
 
 } // namespace fusetag
