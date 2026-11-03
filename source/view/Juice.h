@@ -73,8 +73,8 @@ public:
     void ghosts(std::vector<Ghost>& out) const;
     // Arrow on the ground around me toward the it player when they're near (I'm a runner). strength 0..1 = how near
     bool hunterArrow(Vec3& at, mealkit::Quat& rotation, f32& strength) const;
-    // Who to watch while I'm out: the it player, else anyone still in
-    bool spectateTarget(Vec3& at) const;
+    // Who to watch while I'm out: the it player, else anyone still in (slot = whose body it is)
+    bool spectateTarget(Vec3& at, u32& slot) const;
     // Hide spot wobble (scale and tilt) by World::hideSpots index
     void spotLook(u32 spot, Vec3& scale, mealkit::Quat& rotation) const;
 

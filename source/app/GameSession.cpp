@@ -173,11 +173,17 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
         bool hasTarget = mine && local < m_pawnHas.size() && m_pawnHas[local] && !current.slots[local].out;
         Vec3 target = hasTarget ? m_pawnAt[local] + Vec3{0.0f, m_juice.cameraDip(), 0.0f} : Vec3{};
         // Out: the camera holds on my blast while the body flies, then follows the it player (or anyone still in)
-        if (!hasTarget && !mine && local < current.playerCount && current.slots[local].out) hasTarget = m_juice.spectateTarget(target);
+        // The camera's wall rays skip the followed body: spectating, that's the other player (else the arm hits their capsule and goes first person)
+        const Pawn* followed = mine;
+        u32 watched = kNoSlot;
+        if (!hasTarget && !mine && local < current.playerCount && current.slots[local].out && m_juice.spectateTarget(target, watched)) {
+            hasTarget = true;
+            followed = playerPawn(current, watched);
+        }
         const f32 dt = static_cast<f32>(std::clamp(now - m_cameraTime, 0.0, 0.1)); // first frame / stalls: no jumps
         m_cameraTime = now;
         const Vec3 shake = ctx.feedback.cameraShake(hasTarget ? target : m_camera.brain.pose().position);
-        m_camera.update(sim().world(), mine, hasTarget ? &target : nullptr, hitStop ? 0.0f : dt,
+        m_camera.update(sim().world(), followed, hasTarget ? &target : nullptr, hitStop ? 0.0f : dt,
                         ctx.settings.values().display.fov + m_juice.fovOffset(), shake);
         m_camera.apply(ctx.viewport, look.camera, frame);
     }

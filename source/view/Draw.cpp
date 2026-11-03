@@ -113,10 +113,14 @@ void drawItems(const WorldState& current, const ViewTuning& look, f64 viewTime, 
     for (auto [id, crate] : current.crates) {
         if (!crate.full) continue;
         const f32 phase = time + static_cast<f32>(id.slot) * 0.7f; // const-ok: crates out of step
-        const Vec3 at = crate.position + Vec3{0.0f, look.juice.crateBob * std::sin(phase * 2.0f), 0.0f}; // const-ok: bob rate
         const Quat rot = quatFromAxisAngle({0, 1, 0}, phase * look.juice.crateSpin) * quatFromAxisAngle(normalize(Vec3{1, 0, 1}), 0.4f); // const-ok: tilted
         const f32 glint = std::sin(phase * 3.0f) > 0.95f ? 0.6f : 0.0f; // const-ok: a short glint now and then
         const f32 sz = look.juice.crateSize;
+        // The tilted crate reaches lower than an upright one: lift it so its lowest corner stays at the bottom of an upright crate
+        // at the placed position, and bob upward only (otherwise the corners dip into the floor)
+        const f32 reach = 0.5f * sz * (std::fabs(rotate(rot, {1, 0, 0}).y) + std::fabs(rotate(rot, {0, 1, 0}).y) + std::fabs(rotate(rot, {0, 0, 1}).y));
+        const f32 bob = look.juice.crateBob * (0.5f + 0.5f * std::sin(phase * 2.0f)); // const-ok: bob rate
+        const Vec3 at = crate.position + Vec3{0.0f, reach - 0.5f * sz + bob, 0.0f};
         addModelOrBox(models, look.crateModel, eye, {at, look.juice.crateColor.value, rot, Vec3{sz, sz, sz}, render::instanceFlash(0, glint)}, out);
     }
     for (auto [id, trap] : current.traps) {
@@ -194,7 +198,8 @@ void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayer
         thread_local std::vector<asset::BoneMatrix> palette;
         asset::animPose(chars.states, figure->skeleton, figure->clips, chars.anims[slot], pose);
         asset::skinPalette(figure->skeleton, pose, palette);
-        const Quat facing = quatFromAxisAngle({0, 1, 0}, yaw);
+        // The model faces glTF +Z, which the importer's z flip (glTF is right-handed) turns into -Z: turn it half way round
+        const Quat facing = quatFromAxisAngle({0, 1, 0}, yaw + 3.14159265f);
         const Vec3 feet = at[slot] + l.offset - Vec3{0.0f, look.footOffset, 0.0f};
         out.addSkinned(figure->lods[0], {feet, color.value, normalize(facing * l.rotation), l.scale, render::instanceFlash(0, l.flash)},
                        palette.data(), static_cast<u32>(palette.size()));

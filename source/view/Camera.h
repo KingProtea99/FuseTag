@@ -22,8 +22,9 @@ struct GameCamera {
     // Every frame: actions orbit (rotate with look while held), turn (rotate immediately, pad), zoom (zoom amount)
     void control(mealkit::Window& window, const mealkit::input::Actions& actions, const CameraTuning& tuning);
     void release(mealkit::Window& window); // menus open: no turning
-    // Moves the brain. target = my character (nullptr while waiting to respawn), world for spring arm wall rays, shake from the feedback table
-    void update(const World& world, const Pawn* me, const mealkit::Vec3* target, mealkit::f32 dt, mealkit::f32 fov, mealkit::Vec3 shake);
+    // Moves the brain. target = my character or the one I spectate (nullptr while waiting to respawn), followed = its body (the spring arm
+    // wall rays skip it), world for those rays, shake from the feedback table
+    void update(const World& world, const Pawn* followed, const mealkit::Vec3* target, mealkit::f32 dt, mealkit::f32 fov, mealkit::Vec3 shake);
     void apply(mealkit::render::Viewport viewport, const CameraTuning& tuning, mealkit::render::FrameParams& frame) const {
         brain.apply(viewport, tuning.nearPlane, tuning.farPlane, frame);
     }

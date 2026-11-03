@@ -310,14 +310,16 @@ bool Juice::hunterArrow(Vec3& at, Quat& rotation, f32& strength) const {
     return true;
 }
 
-bool Juice::spectateTarget(Vec3& at) const {
+bool Juice::spectateTarget(Vec3& at, u32& slot) const {
     if (m_itSlot != kNoSlot && m_itSlot < m_has.size() && m_has[m_itSlot]) {
         at = m_positions[m_itSlot];
+        slot = m_itSlot;
         return true;
     }
-    for (u32 slot = 0; slot < m_has.size(); ++slot)
-        if (m_has[slot] && m_pawns[slot].outStart < 0.0) {
-            at = m_positions[slot];
+    for (u32 i = 0; i < m_has.size(); ++i)
+        if (m_has[i] && m_pawns[i].outStart < 0.0) {
+            at = m_positions[i];
+            slot = i;
             return true;
         }
     return false;

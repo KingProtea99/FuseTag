@@ -3,7 +3,8 @@
 # Saves each model's source next to this script as art/blender/<name>.blend (open and edit by hand; rerunning this script overwrites).
 # Style (docs/ROADMAP.md M5): round chunky shapes for squash and stretch, flat white body tinted by the player color in the game,
 # toon outline and rim light through MealKit material properties (mealkit_<key>, read as glTF extras).
-# Blender is z-up with characters facing -Y; the glTF exporter turns that into y-up facing +Z (the engine's yaw 0).
+# Blender is z-up with characters facing -Y; the glTF exporter turns that into y-up facing +Z, and MealKit's import flips z
+# (left-handed), so in the game the model faces -Z. view/Draw.cpp turns the character half way round for that.
 import math
 import os
 
