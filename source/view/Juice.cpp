@@ -40,6 +40,7 @@ void Juice::onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 
         break;
     case EventKind::Land:
         if (fx) fx->squash.kick(std::max(t.landKickMax, t.landKick * e.value));
+        if (e.player == localPlayer) m_dip.kick(t.landDip * e.value);
         break;
     case EventKind::Tag: {
         if (fx) {
@@ -55,6 +56,8 @@ void Juice::onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 
         m_flightFrom = e.player;
         m_flightStart = now;
         m_bombOwner = e.other;
+        m_markerSlot = e.other;
+        m_markerStart = now;
         addLight(e.position + Vec3{0.0f, 0.5f, 0.0f}, t.tagLightRange, t.tagLight, t.tagLightSeconds, now);
         if (e.player == localPlayer || e.other == localPlayer) m_fov.kick(t.fovTagKick);
         break;
@@ -65,12 +68,19 @@ void Juice::onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 
     case EventKind::NewIt:
         m_bombOwner = e.player;
         m_flightStart = -1.0;
+        m_markerSlot = e.player;
+        m_markerStart = now;
         if (fx) fx->squash.kick(t.tagVictimKick * 0.5f);
         break;
     case EventKind::Eliminated:
         addLight(e.position, t.blastLightRange, t.blastLight, t.blastLightSeconds, now);
         m_bloomUntil = now + t.blastBloomSeconds;
-        if (fx) fx->squash.kick(-t.tagVictimKick);
+        if (fx) {
+            fx->squash.kick(-t.tagVictimKick);
+            fx->outStart = now;
+            const f32 a = e.position.x * 7.0f + e.position.z * 3.0f; // const-ok: any angle that varies per blast
+            fx->tumbleAxis = normalize(Vec3{std::cos(a), 0.3f, std::sin(a)}); // const-ok: mostly sideways
+        }
         if (m_bombOwner == e.player) m_bombOwner = kNoSlot;
         break;
     case EventKind::FuseDanger:
@@ -98,6 +108,8 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
 
     // The it player is the sim's truth; the bomb flight only delays where it is drawn
     m_bombOwner = s.itSlot;
+    m_itSlot = s.itSlot;
+    m_removeSeconds = static_cast<f32>(world.tuning.blastRemove.value) * world.tickDt;
     m_localIt = m_local < s.playerCount && s.slots[m_local].it;
     m_fuseLeft = s.itSlot != kNoSlot ? fuseFraction(world, s.itSlot) : 1.0f;
     const f32 pulseRate = t.bombPulseSlow + (t.bombPulseFast - t.bombPulseSlow) * (1.0f - m_fuseLeft);
@@ -114,6 +126,15 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
         fx.lastPosition = positions[slot];
         fx.lastVelocity = velocity;
         fx.seen = true;
+        // Afterimages while the escape boost runs (sampled every ghostInterval)
+        const bool boosting = !s.slots[slot].boost.ready(s.tick) && !s.slots[slot].out;
+        if (boosting && now >= fx.nextTrail) {
+            for (u32 k = static_cast<u32>(fx.trail.size()) - 1; k > 0; --k) fx.trail[k] = fx.trail[k - 1];
+            fx.trail[0] = positions[slot];
+            fx.trailCount = std::min<u32>(fx.trailCount + 1, std::min<u32>(t.ghostCount, static_cast<u32>(fx.trail.size())));
+            fx.nextTrail = now + t.ghostInterval;
+        }
+        if (!boosting) fx.trailCount = 0;
         const f32 speed = std::sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
         const bool grounded = std::fabs(velocity.y) < 0.5f; // const-ok: view guess of being on the ground
 
@@ -153,6 +174,7 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
         const Vec3 v = m_pawns[m_local].lastVelocity;
         mySpeed = std::sqrt(v.x * v.x + v.z * v.z);
     }
+    m_dip.update(0.0f, t.dipFrequency, t.dipDamping, dt);
     m_fov.update(t.fovSpeed * std::min(mySpeed / t.runSpeed, 1.0f), t.fovFrequency, t.fovDamping, dt);
 
     m_lights.erase(std::remove_if(m_lights.begin(), m_lights.end(), [now](const Light& l) { return now >= l.end; }), m_lights.end());
@@ -168,6 +190,13 @@ PawnLook Juice::look(u32 slot) const {
     out.rotation = normalize(quatFromAxisAngle({1, 0, 0}, fx.leanX.value) * quatFromAxisAngle({0, 0, 1}, fx.leanZ.value) *
                              quatFromAxisAngle({0, 1, 0}, fx.spin));
     out.offset = {0.0f, m_t.bobHeight * std::fabs(std::sin(fx.bobPhase * kTau * 0.5f)), 0.0f};
+    if (fx.outStart >= 0.0) { // blown up: tumble, then shrink away just before the body is removed
+        const f32 since = static_cast<f32>(m_now - fx.outStart);
+        out.rotation = normalize(quatFromAxisAngle(fx.tumbleAxis, since * m_t.tumbleSpeed) * out.rotation);
+        const f32 left = m_removeSeconds - since;
+        if (left < m_t.shrinkSeconds) out.scale = out.scale * std::max(0.0f, left / std::max(m_t.shrinkSeconds, 0.01f));
+        out.offset = {};
+    }
     if (m_now < fx.flashUntil) out.flash = static_cast<f32>((fx.flashUntil - m_now) / std::max(m_t.flashSeconds, 0.01f));
     return out;
 }
@@ -186,6 +215,56 @@ bool Juice::bomb(Vec3& at, f32& scale, f32& flash) const {
     scale = t.bombSize * (1.0f + t.bombPulseSize * pulse);
     flash = m_fuseLeft < t.bombFlashBelow && pulse > 0.0f ? 0.8f : 0.0f; // const-ok: flash amount
     return true;
+}
+
+bool Juice::itMarker(Vec3& at, f32& scale, Quat& rotation) const {
+    const JuiceTuning& t = m_t;
+    if (m_markerSlot == kNoSlot || m_markerSlot != m_itSlot || m_markerStart < 0.0) return false;
+    const f32 since = static_cast<f32>(m_now - m_markerStart);
+    if (since >= t.markerSeconds) return false;
+    f32 bombScale = 0.0f, flash = 0.0f;
+    if (!bomb(at, bombScale, flash)) return false;
+    constexpr f32 kPop = 0.25f; // const-ok: pop-in and fade-out time (s)
+    const f32 grow = ease::outBack(std::min(since / kPop, 1.0f));
+    const f32 shrink = std::clamp((t.markerSeconds - since) / kPop, 0.0f, 1.0f);
+    scale = t.markerSize * grow * shrink;
+    at = at + Vec3{0.0f, t.markerHeight + 0.1f * std::sin(since * 18.0f), 0.0f}; // const-ok: little bounce
+    rotation = quatFromAxisAngle({0, 1, 0}, since * 6.0f) * quatFromAxisAngle({0, 0, 1}, 0.785398f); // const-ok: spinning diamond
+    return true;
+}
+
+void Juice::ghosts(std::vector<Ghost>& out) const {
+    for (u32 slot = 0; slot < m_pawns.size(); ++slot) {
+        const PawnFx& fx = m_pawns[slot];
+        for (u32 k = 1; k < fx.trailCount; ++k) // [0] is about where the body is now
+            out.push_back({slot, fx.trail[k], 1.0f - static_cast<f32>(k) / static_cast<f32>(fx.trailCount)});
+    }
+}
+
+bool Juice::hunterArrow(Vec3& at, Quat& rotation, f32& strength) const {
+    if (m_local >= m_has.size() || !m_has[m_local] || m_itSlot == kNoSlot || m_itSlot == m_local || !m_has[m_itSlot]) return false;
+    if (m_pawns[m_local].outStart >= 0.0) return false;
+    const Vec3 d{m_positions[m_itSlot].x - m_positions[m_local].x, 0.0f, m_positions[m_itSlot].z - m_positions[m_local].z};
+    const f32 dist = std::sqrt(d.x * d.x + d.z * d.z);
+    if (dist >= m_t.arrowRange || dist < 0.01f) return false; // const-ok: overlapping
+    const Vec3 dir = d / dist;
+    strength = 1.0f - dist / m_t.arrowRange;
+    at = m_positions[m_local] + dir * m_t.arrowDistance + Vec3{0.0f, -0.85f, 0.0f}; // const-ok: just above the floor
+    rotation = quatFromAxisAngle({0, 1, 0}, std::atan2(dir.x, dir.z));
+    return true;
+}
+
+bool Juice::spectateTarget(Vec3& at) const {
+    if (m_itSlot != kNoSlot && m_itSlot < m_has.size() && m_has[m_itSlot]) {
+        at = m_positions[m_itSlot];
+        return true;
+    }
+    for (u32 slot = 0; slot < m_has.size(); ++slot)
+        if (m_has[slot] && m_pawns[slot].outStart < 0.0) {
+            at = m_positions[slot];
+            return true;
+        }
+    return false;
 }
 
 void Juice::addLights(std::vector<render::PointLight>& lights) const {

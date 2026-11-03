@@ -58,6 +58,21 @@ public:
     // Post and camera additions for this window's player
     void applyPost(mealkit::render::PostParams& post, f32 flashScale) const;
     f32 fovOffset() const { return m_fov.value; }
+    f32 cameraDip() const { return m_dip.value; } // added to the camera target height (landing)
+
+    // "It!" marker popping over the new it. false = none now
+    bool itMarker(Vec3& at, f32& scale, mealkit::Quat& rotation) const;
+    // Afterimages of the player who just passed the bomb on (while their escape boost runs)
+    struct Ghost {
+        u32 slot = 0;
+        Vec3 position;
+        f32 fade = 1.0f; // 1 newest .. 0 oldest
+    };
+    void ghosts(std::vector<Ghost>& out) const;
+    // Arrow on the ground around me toward the it player when they're near (I'm a runner). strength 0..1 = how near
+    bool hunterArrow(Vec3& at, mealkit::Quat& rotation, f32& strength) const;
+    // Who to watch while I'm out: the it player, else anyone still in
+    bool spectateTarget(Vec3& at) const;
 
 private:
     struct PawnFx {
@@ -68,6 +83,11 @@ private:
         f32 bobPhase = 0.0f;
         f64 flashUntil = 0.0, holdUntil = 0.0;
         f32 spin = 0.0f, spinVelocity = 0.0f;
+        f64 outStart = -1.0;     // when this player blew up (tumble, shrink)
+        Vec3 tumbleAxis{1, 0, 0};
+        std::array<Vec3, 8> trail{}; // afterimage positions, newest first
+        u32 trailCount = 0;
+        f64 nextTrail = 0.0;
     };
     struct Light {
         mealkit::render::PointLight light;
@@ -91,7 +111,11 @@ private:
     // This window's player
     u8 m_local = kNoPlayer;
     bool m_localIt = false;
-    Spring m_fov;
+    Spring m_fov, m_dip;
+    u32 m_markerSlot = kNoSlot;
+    f64 m_markerStart = -1.0;
+    f32 m_removeSeconds = 2.0f; // tuning.blastRemove in seconds
+    u32 m_itSlot = kNoSlot;
     f64 m_bloomUntil = 0.0;
     f64 m_aberrationUntil = 0.0;
 

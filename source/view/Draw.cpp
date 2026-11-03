@@ -77,6 +77,28 @@ void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayer
         const Vec3 center = at[slot] + l.offset + Vec3{0.0f, (size.y - look.pawnSize.y) * 0.5f, 0.0f};
         out.add(box, {center, color.value, l.rotation, size, render::instanceFlash(0, l.flash)});
     }
+    // Afterimages: smaller, fading copies behind the one who passed the bomb on
+    static thread_local std::vector<Juice::Ghost> ghosts;
+    ghosts.clear();
+    juice.ghosts(ghosts);
+    for (const Juice::Ghost& g : ghosts) {
+        const Color c = look.playerColors[g.slot % look.playerColors.size()];
+        const f32 k = 0.4f + 0.5f * g.fade; // const-ok: oldest is 40% size
+        out.add(box, {g.position, c.value, Quat{}, look.pawnSize * k, render::instanceFlash(0, 0.5f * (1.0f - g.fade))});
+    }
+    // "It!" marker and the hunter arrow
+    Vec3 markAt;
+    f32 markScale = 0.0f;
+    Quat markRot;
+    if (juice.itMarker(markAt, markScale, markRot))
+        out.add(box, {markAt, look.juice.markerColor.value, markRot, Vec3{markScale, markScale, markScale * 0.4f}, render::instanceFlash(0, 0.3f)});
+    Vec3 arrowAt;
+    Quat arrowRot;
+    f32 near = 0.0f;
+    if (juice.hunterArrow(arrowAt, arrowRot, near) && current.itSlot != kNoSlot) {
+        const Color c = look.playerColors[current.itSlot % look.playerColors.size()];
+        out.add(box, {arrowAt, c.value, arrowRot, look.juice.arrowSize * (0.5f + 0.5f * near), render::instanceFlash(0, near * 0.5f)});
+    }
     Vec3 bombAt;
     f32 bombScale = 0.0f, bombFlash = 0.0f;
     if (juice.bomb(bombAt, bombScale, bombFlash))

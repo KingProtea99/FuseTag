@@ -68,7 +68,7 @@ Goal: with graybox art still, a muted video of a round reads clearly: who is it,
 - [x] Run: subtle bob and stretch along speed; volume preserved (x·y·z ≈ 1).
 - [x] Turning: lean into the turn from angular velocity; sharp stop leans back.
 - [x] Tagged: big squash + spin wobble on the new it; old it pops up with a stretch
-- [ ] Speed-line trail on the old it
+- [x] Afterimages behind the old it during the escape boost
 - [x] Hold (new it can't move): shaking "fuming" squash loop until `HoldEnd`, then a launch stretch.
 
 **The bomb (the main readability tool)**
@@ -82,21 +82,24 @@ Goal: with graybox art still, a muted video of a round reads clearly: who is it,
 - [x] Feedback rows for `Tag`: hit stop (0.06 s, local players involved only), camera shake by distance, impact sound, star burst particles.
 - [x] Both players flash white (`instanceFlash`) for 0.1 s; short point light at the contact point.
 - [x] Camera punch: brief fov kick and a small push toward the hit for the two involved.
-- [ ] "IT!" world-space popup over the new it: scale from 0 with overshoot, wobble, fade.
+- [x] Spinning marker popping over the new it (out-back scale, bounce, fade). A text "IT!" popup waits for world-space UI text in M5
 
 **Explosion (elimination)**
 - [x] `Eliminated`: flash for the one out, shake by distance, blast and smoke particles, point light, bloom kick
 - [ ] Boom sound (M5)
-- [ ] Ragdoll launch from the sim; body blackens (material tint) and dissolves out with the glowing dissolve edge.
-- [ ] Brief slow camera ease toward the blast for the eliminated player, then spectator camera.
+- [x] Blown body: launched, dark, tumbles and shrinks away before removal (view side)
+- [ ] Ragdoll launch and dissolve edge need real character models (M5)
+- [x] Eliminated: camera holds on the blast while the body flies, then follows the it player
 
 **Local danger cues**
 - [x] When I'm it: red vignette that pulses with the bomb, heartbeat that speeds up below 30% fuse, chromatic aberration kick on each pulse below 10% (scaled by flash setting).
-- [ ] When it is near me: directional arrow at the screen edge and footsteps louder (spatial audio already handles distance).
+- [x] When it is near me: arrow on the ground toward it, bigger and brighter as it gets closer
+- [ ] Footsteps (M5 sounds)
 
 **Camera**
 - [x] Third-person spring-arm camera with wall avoidance (engine virtual cameras), fov widens slightly with speed and sprint.
-- [ ] Landing camera dip, shove recoil.
+- [x] Landing camera dip
+- [ ] Shove recoil (with the shove in M3)
 
 **Done check**: record a 3-minute bot round with `--capture` frames; every tag and explosion is visible without sound.
 

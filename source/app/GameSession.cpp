@@ -157,8 +157,10 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
         // The camera follows my character. While waiting to respawn it stays at the last spot
         const u32 local = ctx.session.localPlayer();
         const Pawn* mine = playerPawn(current, local);
-        const bool hasTarget = mine && local < m_pawnHas.size() && m_pawnHas[local];
-        const Vec3 target = hasTarget ? m_pawnAt[local] : Vec3{};
+        bool hasTarget = mine && local < m_pawnHas.size() && m_pawnHas[local] && !current.slots[local].out;
+        Vec3 target = hasTarget ? m_pawnAt[local] + Vec3{0.0f, m_juice.cameraDip(), 0.0f} : Vec3{};
+        // Out: the camera holds on my blast while the body flies, then follows the it player (or anyone still in)
+        if (!hasTarget && !mine && local < current.playerCount && current.slots[local].out) hasTarget = m_juice.spectateTarget(target);
         const f32 dt = static_cast<f32>(std::clamp(now - m_cameraTime, 0.0, 0.1)); // first frame / stalls: no jumps
         m_cameraTime = now;
         const Vec3 shake = ctx.feedback.cameraShake(hasTarget ? target : m_camera.brain.pose().position);

@@ -97,6 +97,23 @@ MEALKIT_STRUCT(JuiceTuning) {
     MEALKIT_FIELD(f32, fovTagKick, 60.0f, "잡기에 끼었을 때 시야각 충격 (도/초)");
     MEALKIT_FIELD(f32, fovFrequency, 4.0f, "시야각 스프링 진동수 (Hz)");
     MEALKIT_FIELD(f32, fovDamping, 0.5f, "시야각 스프링 감쇠");
+    // "It!" marker over a new it, afterimages of the one who passed the bomb on
+    MEALKIT_FIELD(Color, markerColor, (Color::rgb(255, 70, 50)), "새 술래 표시 색");
+    MEALKIT_FIELD(f32, markerSize, 0.35f, "새 술래 표시 크기 (m)");
+    MEALKIT_FIELD(f32, markerHeight, 0.75f, "폭탄 위 표시 높이 (m)");
+    MEALKIT_FIELD(f32, markerSeconds, 0.9f, "새 술래 표시 시간 (초)");
+    MEALKIT_FIELD(f32, ghostInterval, 0.05f, "잔상 간격 (초)");
+    MEALKIT_FIELD(mealkit::u32, ghostCount, 5, "잔상 수");
+    // Blown up: tumble, then shrink away before the body is removed
+    MEALKIT_FIELD(f32, tumbleSpeed, 9.0f, "탈락한 몸이 도는 빠르기 (rad/s)");
+    MEALKIT_FIELD(f32, shrinkSeconds, 0.35f, "사라지기 전 줄어드는 시간 (초)");
+    // Hunter direction (an arrow on the ground around me) and camera
+    MEALKIT_FIELD(f32, arrowRange, 12.0f, "술래 방향 화살표가 보이는 거리 (m)");
+    MEALKIT_FIELD(f32, arrowDistance, 1.2f, "화살표가 놓이는 거리 (m, 내 중심에서)");
+    MEALKIT_FIELD(Vec3, arrowSize, (Vec3{0.3f, 0.06f, 1.1f}), "화살표 크기 (m)");
+    MEALKIT_FIELD(f32, landDip, -0.12f, "착지 낙하 속도당 카메라 내려감 (m/s당 충격)");
+    MEALKIT_FIELD(f32, dipFrequency, 3.0f, "카메라 내려감 스프링 진동수 (Hz)");
+    MEALKIT_FIELD(f32, dipDamping, 0.55f, "카메라 내려감 스프링 감쇠");
     // Danger when I'm it
     MEALKIT_FIELD(f32, dangerVignette, 0.35f, "내가 술래일 때 비네트");
     MEALKIT_FIELD(f32, dangerPulse, 0.25f, "폭탄 맥박에 맞춘 비네트 추가 (퓨즈가 적을수록)");
