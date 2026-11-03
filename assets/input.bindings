@@ -23,6 +23,11 @@ keys E
 mouse Left
 pad X
 
+row item
+label Use item
+keys Q
+pad Y
+
 row orbit
 label Turn camera (hold)
 mouse Right

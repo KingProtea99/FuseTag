@@ -31,7 +31,7 @@ void updateHiding(World& world) {
     for (u32 slot = 0; slot < s.playerCount; ++slot) {
         PlayerSlot& p = s.slots[slot];
         const Pawn* pawn = playerPawn(s, slot);
-        if (!playing || !pawn || !aliveInRound(p) || p.it) {
+        if (!playing || !pawn || !aliveInRound(p) || p.it || !p.vanish.ready(s.tick)) { // invisible already: no need to hide
             reveal(world, slot);
             p.hideSpot = kNoSlot;
             continue;

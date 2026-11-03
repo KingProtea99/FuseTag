@@ -73,6 +73,16 @@ void Juice::onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 
         if (fx && e.kind == EventKind::Found) fx->squash.kick(t.holdEndKick);
         break;
     }
+    case EventKind::Snared:
+        if (fx) {
+            fx->squash.kick(t.shoveHitKick);
+            fx->flashUntil = now + t.flashSeconds;
+        }
+        break;
+    case EventKind::Pickup:
+    case EventKind::ItemUse:
+        if (fx) fx->squash.kick(t.shoveKick * 0.6f);
+        break;
     case EventKind::Shove:
         if (fx) fx->squash.kick(t.shoveKick);
         break;
@@ -149,7 +159,7 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
         fx.lastVelocity = velocity;
         fx.seen = true;
         // Afterimages while the escape boost runs (sampled every ghostInterval)
-        const bool boosting = !s.slots[slot].boost.ready(s.tick) && !s.slots[slot].out;
+        const bool boosting = (!s.slots[slot].boost.ready(s.tick) || !s.slots[slot].speedy.ready(s.tick)) && !s.slots[slot].out;
         if (boosting && now >= fx.nextTrail) {
             for (u32 k = static_cast<u32>(fx.trail.size()) - 1; k > 0; --k) fx.trail[k] = fx.trail[k - 1];
             fx.trail[0] = positions[slot];
@@ -165,6 +175,7 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
         if (grounded) target = t.runStretch * std::min(speed / t.runSpeed, 1.0f);
         const PlayerSlot& p = s.slots[slot];
         if (p.it && !p.hold.ready(s.tick)) target += t.holdShake * std::sin(static_cast<f32>(now) * t.holdShakeRate * kTau);
+        if (!p.stunned.ready(s.tick)) target += t.snaredShake * std::sin(static_cast<f32>(now) * t.holdShakeRate * 1.3f * kTau); // const-ok: a bit off the hold rhythm
         fx.squash.update(target, t.squashFrequency, t.squashDamping, dt);
         fx.squash.value = std::clamp(fx.squash.value, -0.6f, 0.8f); // const-ok: never flip or vanish
 

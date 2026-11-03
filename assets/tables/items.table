@@ -1,0 +1,38 @@
+# MealKit table (ItemKind). Edit it in the editor's [Tables] panel or import a CSV there.
+@format table 1
+
+row shoes
+effect Sprint
+weight 20
+duration 4
+strength 1.35
+
+row snare
+effect Snare
+weight 18
+duration 2
+strength 1
+
+row vanish
+effect Vanish
+weight 14
+duration 4
+strength 1
+
+row scope
+effect Scope
+weight 14
+duration 5
+strength 1
+
+row coolant
+effect Coolant
+weight 16
+duration 0
+strength 0.3
+
+row bigshove
+effect BigShove
+weight 18
+duration 0
+strength 1.8

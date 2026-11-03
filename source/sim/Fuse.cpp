@@ -41,7 +41,8 @@ void resetRound(World& world) {
         p.it = p.out = p.winded = p.sprinting = false;
         p.outOrder = 0;
         p.hold = p.immune = p.boost = p.remove = p.shove = p.stunned = {};
-        p.hidden = p.botHiding = p.botShove = false;
+        p.hidden = p.botHiding = p.botShove = p.botUseItem = false;
+        p.speedy = p.vanish = p.scope = {};
         p.hideSpot = kNoSlot;
         p.stillTicks = p.searched = p.botSearchTicks = 0;
         p.botSearchSpot = kNoSlot;

@@ -25,6 +25,8 @@ std::array<mealkit::sim::MatchPlayer, mealkit::net::kMaxPlayers> matchPlayers(co
 void setUpNextRound(World& world) {
     if (world.state.flow.round == 0) return;
     resetRound(world);
+    for (auto [id, trap] : world.state.traps) world.state.traps.destroy(id);
+    for (auto [id, crate] : world.state.crates) crate.full = true;
     respawnAll(world);
 }
 

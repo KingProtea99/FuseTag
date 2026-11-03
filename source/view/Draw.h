@@ -30,6 +30,9 @@ void pawnPositions(const WorldState& previous, const WorldState& current, f32 al
 // Hide spots (from World::hideSpots, with juice wobble) and loose props (interpolated)
 void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juice, mealkit::asset::ModelCache& models,
                    mealkit::render::DrawList& out);
+// Item crates (bobbing, spinning) and snares on the floor
+void drawItems(const WorldState& current, const ViewTuning& look, mealkit::f64 viewTime, mealkit::asset::ModelCache& models,
+               mealkit::render::DrawList& out);
 void drawProps(const WorldState& previous, const WorldState& current, f32 alpha, mealkit::asset::ModelCache& models,
                mealkit::render::DrawList& out);
 // Characters (with juice's squash, lean and flash) and the bomb. Hidden runners are drawn only for their own player (local)

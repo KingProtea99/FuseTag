@@ -1,5 +1,7 @@
 #include "app/Headless.h"
 
+#include "mealkit/data/Tables.h"
+
 #include <cstring>
 
 using namespace mealkit;
@@ -8,7 +10,10 @@ namespace fusetag {
 
 void Headless::startWorld(World& world, const game::MatchInfo& match, const Tuning& tuning, const scene::Scene& flatScene,
                           asset::ModelCache& models, u32 physicsThreads) {
-    world.reset(match.seed, match.playerCount, tuning, flatScene, models, reflect::tickRate(), physicsThreads);
+    // Tables are read from files every match (per-match loading, engine docs/CODING_MODEL.md "Asset references and loading")
+    sim::Table<ItemKind> items;
+    data::loadTable(items);
+    world.reset(match.seed, match.playerCount, tuning, items, flatScene, models, reflect::tickRate(), physicsThreads);
 }
 
 // The bot AI in the simulation drives this player (sim/Bots.cpp), so --bot plays like the bots in empty seats

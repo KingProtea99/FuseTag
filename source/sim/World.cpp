@@ -70,12 +70,13 @@ void loadScene(World& world, const scene::Scene& scene, mealkit::asset::ModelCac
 
 } // namespace
 
-void World::reset(u64 seed, u32 humans, const Tuning& tuningValue, const scene::Scene& scene, mealkit::asset::ModelCache& models,
-                  u32 tickRateValue, u32 physicsThreads) {
+void World::reset(u64 seed, u32 humans, const Tuning& tuningValue, const mealkit::sim::Table<ItemKind>& itemTable, const scene::Scene& scene,
+                  mealkit::asset::ModelCache& models, u32 tickRateValue, u32 physicsThreads) {
     physics.init(4096, physicsThreads);
     tickRate = tickRateValue ? tickRateValue : 30u;
     tickDt = 1.0f / static_cast<f32>(tickRate);
     tuning = tuningValue;
+    items = itemTable;
     rules = matchRules(tuning);
     physics.setGravity(tuning.gravity);
     physics.setContactEvents(tuning.impactSpeed, tuning.impactsPerTick);
@@ -88,6 +89,8 @@ void World::reset(u64 seed, u32 humans, const Tuning& tuningValue, const scene::
     loadScene(*this, scene, models);
     nav = mealkit::sim::bakeNavGrid(physics, arenaMin, arenaMax, tuning.nav); // only static scene bodies exist now
     createProps(*this, scene);
+    createCrates(*this, scene);
+    state.traps.init(mealkit::net::kMaxPlayers * 4); // a few snares per player at most (older ones are replaced)
     state.humanCount = std::min(humans, mealkit::net::kMaxPlayers);
     state.playerCount = std::max(state.humanCount, std::min(tuning.botFill, mealkit::net::kMaxPlayers));
     for (u32 i = 0; i < state.playerCount; ++i) {
@@ -127,6 +130,7 @@ void World::step(const mealkit::net::TickInputs& tickInputs) {
     sensePawns(*this);
     senseProps(*this);
     shovePlayers(*this);
+    updateItems(*this);
     updateHiding(*this);
     tagPlayers(*this);
     burnFuse(*this);
@@ -135,6 +139,7 @@ void World::step(const mealkit::net::TickInputs& tickInputs) {
     // End of tick: delete bodies of characters removed this tick, and put ones created this tick into iteration from the next tick
     state.pawns.endTick([this](Pawn& pawn) { mealkit::sim::destroyMover(physics, pawn.mover); });
     state.props.endTick([this](PropBox& prop) { physics.destroy(prop.body); });
+    state.traps.endTick();
     ++state.tick;
 }
 
@@ -161,6 +166,11 @@ u32 hideSpotAt(const World& world, const Vec3& feet) {
             return i;
     }
     return kNoSlot;
+}
+
+bool unseen(const WorldState& state, u32 slot) {
+    const PlayerSlot& p = state.slots[slot];
+    return p.hidden || !p.vanish.ready(state.tick);
 }
 
 bool botDriven(const World& world, u32 slot) {

@@ -4,7 +4,8 @@ using namespace mealkit;
 
 namespace fusetag {
 
-void fillHud(const World& world, u32 local, const SeatNames& names, const PlayerColors& colors, HudVm& vm) {
+void fillHud(const World& world, u32 local, const SeatNames& names, const PlayerColors& colors, const loc::Strings& strings,
+             HudVm& vm) {
     const WorldState& state = world.state;
     const u32 rate = reflect::tickRate();
     const u32 left = state.flow.phaseEnd.remaining(state.tick);
@@ -41,6 +42,21 @@ void fillHud(const World& world, u32 local, const SeatNames& names, const Player
     const u32 cooldown = world.tuning.shoveCooldown.value;
     const u32 shoveLeft = mine ? state.slots[local].shove.remaining(state.tick) : 0u;
     vm.shoveReady = cooldown ? 1.0f - static_cast<f32>(shoveLeft) / static_cast<f32>(cooldown) : 1.0f;
+    const PlayerSlot* me = mine ? &state.slots[local] : nullptr;
+    vm.hasItem = playing && me && me->item < world.items.size();
+    vm.itemName = vm.hasItem ? strings.get("item." + world.items.ids[me->item]) : std::string{};
+    vm.effects.clear();
+    if (playing && me) {
+        auto add = [&](bool on, const char* key) {
+            if (!on) return;
+            if (!vm.effects.empty()) vm.effects += "  ";
+            vm.effects += strings.get(key);
+        };
+        add(!me->speedy.ready(state.tick), "hud.fx.speedy");
+        add(!me->vanish.ready(state.tick), "hud.fx.vanish");
+        add(!me->scope.ready(state.tick), "hud.fx.scope");
+    }
+    vm.snared = playing && me && !me->stunned.ready(state.tick);
     vm.roundOver = state.flow.phase == MatchPhase::RoundEnd && state.roundWinner != kNoSlot;
     vm.winnerName = state.roundWinner != kNoSlot ? names[state.roundWinner] : std::string{};
 }

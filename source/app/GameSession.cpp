@@ -124,7 +124,7 @@ void GameSession::update(game::GameContext& ctx, f64 dt) {
     if (!m_flow.pausesSimulation()) sim().update(session, dt, sample, onTick); // pause in solo play halts the match
     SeatNames names;
     for (u32 i = 0; i < sim().world().state.playerCount; ++i) names[i] = Flow::seatName(ctx, flow, i);
-    fillHud(sim().world(), session.localPlayer(), names, look.playerColors, m_hudVm);
+    fillHud(sim().world(), session.localPlayer(), names, look.playerColors, ctx.strings, m_hudVm);
 }
 
 void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParams& frame, render::DrawList& out) {
@@ -181,6 +181,7 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
     if (sim().started()) {
         const WorldState& shown = m_frozen ? m_frozenCurrent : sim().world().state;
         drawHideSpots(sim().world(), look, m_juice, ctx.models, out);
+        drawItems(shown, look, m_viewTime, ctx.models, out);
         drawProps(m_frozen ? m_frozenPrevious : sim().previous(), shown, m_frozen ? m_frozenAlpha : sim().alpha(), ctx.models, out);
         drawWorld(shown, m_pawnAt, m_pawnHas, ctx.session.localPlayer(), look, m_juice, ctx.models, out);
     }

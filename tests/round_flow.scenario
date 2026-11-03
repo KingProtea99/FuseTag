@@ -8,10 +8,12 @@ tick 0 slots[5].bot == true
 tick 3.1s flow.phase == Playing
 tick 3.1s flow.round == 1
 tick 3.1s itSlot == 3
-tick 60s swaps == 5
-tick 120s outCount == 2
+tick 60s swaps == 4
+tick 120s outCount == 3
 tick 200s flow.round == 2
 tick 300s flow.round == 3
-tick 300s hides == 22
-tick 300s founds == 2
-tick 300s shoves == 30
+tick 300s hides == 23
+tick 300s founds == 0
+tick 300s pickups == 13
+tick 300s snares == 1
+tick 300s shoves == 22

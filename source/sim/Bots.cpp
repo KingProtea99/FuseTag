@@ -34,7 +34,9 @@ u32 nearestRunner(const World& world, u32 self, const Pawn& pawn) {
     f32 bestD2 = 0.0f;
     for (u32 slot = 0; slot < s.playerCount; ++slot) {
         const PlayerSlot& p = s.slots[slot];
-        if (slot == self || !aliveInRound(p) || p.hidden || (p.immuneFrom == self && !p.immune.ready(s.tick))) continue;
+        if (slot == self || !aliveInRound(p) || (unseen(s, slot) && s.slots[self].scope.ready(s.tick)) ||
+            (p.immuneFrom == self && !p.immune.ready(s.tick)))
+            continue;
         const Pawn* other = playerPawn(s, slot);
         if (!other) continue;
         const f32 d2 = flatDistance2(other->position, pawn.position);
@@ -85,6 +87,28 @@ bool nearestHideSpot(const World& world, u32 self, const Pawn& pawn, Vec3& out) 
     return found;
 }
 
+// Simple item rules: each item has one situation it's good for
+bool wantsItem(const World& world, u32 self, const Pawn& pawn) {
+    const WorldState& s = world.state;
+    const Tuning& t = world.tuning;
+    const PlayerSlot& p = s.slots[self];
+    if (p.item == kNoItem || p.item >= world.items.size()) return false;
+    const Pawn* hunter = s.itSlot != kNoSlot && s.itSlot != self ? playerPawn(s, s.itSlot) : nullptr;
+    const f32 hunterD2 = hunter ? flatDistance2(hunter->position, pawn.position) : 1e9f; // const-ok: far away
+    const Pawn* prey = p.it && p.botTarget != kNoSlot ? playerPawn(s, p.botTarget) : nullptr;
+    const f32 preyD2 = prey ? flatDistance2(prey->position, pawn.position) : 1e9f; // const-ok: far away
+    const f32 close2 = t.botSprintRange * t.botSprintRange;
+    switch (world.items[p.item].effect) {
+    case ItemEffect::Sprint: return hunterD2 < close2 || preyD2 < close2 * 2.0f;
+    case ItemEffect::Snare: return hunterD2 < close2;
+    case ItemEffect::Vanish: return !p.it && hunterD2 < t.botFleeRadius * t.botFleeRadius * 0.5f;
+    case ItemEffect::Scope: return p.it && !prey;
+    case ItemEffect::Coolant: return p.it && fuseFraction(world, self) < 0.4f; // const-ok: under 40% fuse
+    case ItemEffect::BigShove: return hunterD2 < t.botShoveRange * t.botShoveRange * 2.0f;
+    }
+    return false;
+}
+
 void think(World& world, u32 self, const Pawn& pawn) {
     const Tuning& t = world.tuning;
     WorldState& s = world.state;
@@ -126,6 +150,7 @@ void think(World& world, u32 self, const Pawn& pawn) {
         }
     }
     p.botRepath = true;
+    p.botUseItem = wantsItem(world, self, pawn);
 }
 
 } // namespace

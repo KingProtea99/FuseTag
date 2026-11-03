@@ -63,6 +63,11 @@ MEALKIT_STRUCT(Tuning) {
     MEALKIT_FIELD(mealkit::f32, propFriction, 0.6f, "물리 물체 마찰");
     MEALKIT_FIELD(mealkit::f32, impactSpeed, 3.0f, "부딪힘 이벤트를 내는 최소 속도 (m/s)");
     MEALKIT_FIELD(mealkit::u32, impactsPerTick, 4, "틱당 부딪힘 이벤트 수 (센 것부터)");
+    // Items (kinds in tables/items.table)
+    MEALKIT_FIELD(mealkit::f32, crateRadius, 1.2f, "아이템 상자를 줍는 거리 (m)");
+    MEALKIT_FIELD(mealkit::f32, trapRadius, 0.9f, "덫에 걸리는 거리 (m)");
+    MEALKIT_FIELD(mealkit::Ticks, trapArm, mealkit::Ticks::seconds(0.6f), "놓은 덫이 작동하기까지 (초)");
+    MEALKIT_FIELD(mealkit::Ticks, trapLife, mealkit::Ticks::seconds(30.0f), "덫이 남아 있는 시간 (초)");
     // Characters (engine movement modes, mealkit/sim/Movement.h)
     MEALKIT_FIELD(mealkit::sim::MoveTuning, move, {}, "이동");
     MEALKIT_FIELD(mealkit::Vec3, gravity, (mealkit::Vec3{0.0f, -20.0f, 0.0f}), "중력 (m/s²)");

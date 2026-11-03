@@ -26,6 +26,11 @@ void createProps(World& world, const mealkit::scene::Scene& scene); // Prop obje
 void senseProps(World& world);         // physics → prop position/rotation (for the view)
 void shovePlayers(World& world);       // shove button: pushes players and props around the shover
 
+// Items.cpp
+void createCrates(World& world, const mealkit::scene::Scene& scene); // ItemCrate objects (World::reset)
+void updateItems(World& world);   // crates refill and get picked up, items are used, traps catch people
+void shoveFrom(World& world, u32 slot, f32 scale); // one shove (Props.cpp; BigShove uses scale > 1)
+
 // Tag.cpp
 void tagPlayers(World& world); // it touches a runner → roles swap
 

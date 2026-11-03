@@ -37,7 +37,7 @@ void drawScene(const scene::Scene& scene, asset::ModelCache& models, const Vec3&
     const render::MeshId box = models.boxMesh();
     for (const scene::Entity& e : scene.entities) {
         if (!scene::visibleInGame(e, &reflect::moduleObjectTypes())) continue; // spawn points/areas are invisible in the game
-        if (e.is<Prop>()) continue; // loose props move: drawn from the simulation (drawProps)
+        if (e.is<Prop>() || e.is<ItemCrate>()) continue; // drawn from the simulation (drawProps, drawItems)
         if (e.is(scene::kTypeScatter)) { // view-only instances painted in the editor
             models.addScatter(out, e, eye);
             continue;
@@ -80,6 +80,25 @@ void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juic
     }
 }
 
+void drawItems(const WorldState& current, const ViewTuning& look, f64 viewTime, asset::ModelCache& models, render::DrawList& out) {
+    const render::MeshId box = models.boxMesh();
+    const f32 time = static_cast<f32>(viewTime);
+    for (auto [id, crate] : current.crates) {
+        if (!crate.full) continue;
+        const f32 phase = time + static_cast<f32>(id.slot) * 0.7f; // const-ok: crates out of step
+        const Vec3 at = crate.position + Vec3{0.0f, look.juice.crateBob * std::sin(phase * 2.0f), 0.0f}; // const-ok: bob rate
+        const Quat rot = quatFromAxisAngle({0, 1, 0}, phase * look.juice.crateSpin) * quatFromAxisAngle(normalize(Vec3{1, 0, 1}), 0.4f); // const-ok: tilted
+        const f32 glint = std::sin(phase * 3.0f) > 0.95f ? 0.6f : 0.0f; // const-ok: a short glint now and then
+        const f32 sz = look.juice.crateSize;
+        out.add(box, {at, look.juice.crateColor.value, rot, Vec3{sz, sz, sz}, render::instanceFlash(0, glint)});
+    }
+    for (auto [id, trap] : current.traps) {
+        const bool armed = trap.armed.ready(current.tick);
+        out.add(box, {trap.position + Vec3{0.0f, look.juice.trapSize.y * 0.5f, 0.0f}, look.juice.trapColor.value, Quat{},
+                      look.juice.trapSize * (armed ? 1.0f : 0.6f), 0}); // const-ok: smaller until armed
+    }
+}
+
 void drawProps(const WorldState& previous, const WorldState& current, f32 alpha, asset::ModelCache& models, render::DrawList& out) {
     const render::MeshId box = models.boxMesh();
     for (auto [id, prop] : current.props) {
@@ -97,9 +116,12 @@ void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayer
         if (!has[slot]) continue;
         const PlayerSlot& p = current.slots[slot];
         const Color color = p.out ? look.outColor : look.playerColors[slot % look.playerColors.size()];
-        if (p.hidden && slot != local) continue; // others don't see a hidden runner
+        const bool scoping = local < current.playerCount && !current.slots[local].scope.ready(current.tick);
+        const bool hiddenNow = unseen(current, slot);
+        if (hiddenNow && slot != local && !scoping) continue; // others don't see a hidden or invisible runner
         PawnLook l = juice.look(slot);
-        if (p.hidden) { // my own hidden character: smaller and pale so I know I'm hidden
+        if (hiddenNow && slot != local) l.flash = std::max(l.flash, look.juice.scopeFlash); // seen through the scope
+        if (hiddenNow && slot == local) { // my own hidden character: smaller and pale so I know I'm hidden
             l.scale = l.scale * look.juice.hiddenSelfScale;
             l.flash = std::max(l.flash, look.juice.hiddenSelfFlash);
         }

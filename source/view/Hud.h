@@ -4,6 +4,7 @@
 #include "view/ViewTuning.h"
 
 #include "mealkit/core/Reflect.h"
+#include "mealkit/loc/Strings.h"
 
 #include <array>
 #include <string>
@@ -44,6 +45,10 @@ MEALKIT_VIEWMODEL(HudVm) {
     MEALKIT_FIELD(bool, hidden, false, "나는 숨음");
     MEALKIT_FIELD(bool, inSpot, false, "숨는 곳 안 (가만히 있으면 숨는다)");
     MEALKIT_FIELD(mealkit::f32, shoveReady, 1.0f, "밀치기 준비 (0~1)");
+    MEALKIT_FIELD(bool, hasItem, false, "아이템 있음");
+    MEALKIT_FIELD(std::string, itemName, {}, "아이템 이름");
+    MEALKIT_FIELD(std::string, effects, {}, "켜진 효과 (달리기, 투명, 투시)");
+    MEALKIT_FIELD(bool, snared, false, "묶임 (덫, 밀림)");
     MEALKIT_FIELD(bool, roundOver, false, "라운드 결과 중");
     MEALKIT_FIELD(std::string, winnerName, {}, "라운드 생존자 이름");
     MEALKIT_LIST(ChatLineVm, chat, 5, "채팅 (최근, 잠시 보인다)");
@@ -54,6 +59,7 @@ MEALKIT_VIEWMODEL(HudVm) {
 using SeatNames = std::array<std::string, mealkit::net::kMaxPlayers>;
 
 // State → HUD (every frame). local = my player slot
-void fillHud(const World& world, u32 local, const SeatNames& names, const PlayerColors& colors, HudVm& vm);
+void fillHud(const World& world, u32 local, const SeatNames& names, const PlayerColors& colors, const mealkit::loc::Strings& strings,
+             HudVm& vm);
 
 } // namespace fusetag

@@ -125,6 +125,15 @@ MEALKIT_STRUCT(JuiceTuning) {
     MEALKIT_FIELD(f32, shoveKick, 5.0f, "밀칠 때 늘어남 (충격)");
     MEALKIT_FIELD(f32, shoveHitKick, -5.0f, "밀린 쪽 찌그러짐 (충격)");
     MEALKIT_FIELD(f32, shoveHitSpin, 14.0f, "밀린 쪽 회전 (rad/s)");
+    // Items
+    MEALKIT_FIELD(Color, crateColor, (Color::rgb(255, 200, 60)), "아이템 상자 색");
+    MEALKIT_FIELD(f32, crateSize, 0.6f, "아이템 상자 크기 (m)");
+    MEALKIT_FIELD(f32, crateBob, 0.15f, "아이템 상자 오르내림 (m)");
+    MEALKIT_FIELD(f32, crateSpin, 1.5f, "아이템 상자 회전 (rad/s)");
+    MEALKIT_FIELD(Color, trapColor, (Color::rgb(60, 50, 40)), "덫 색");
+    MEALKIT_FIELD(Vec3, trapSize, (Vec3{0.8f, 0.08f, 0.8f}), "덫 크기 (m)");
+    MEALKIT_FIELD(f32, scopeFlash, 0.7f, "투시로 보이는 사람 번쩍임");
+    MEALKIT_FIELD(f32, snaredShake, 0.08f, "덫에 걸린 사람이 버둥대는 크기");
     // Danger when I'm it
     MEALKIT_FIELD(f32, dangerVignette, 0.35f, "내가 술래일 때 비네트");
     MEALKIT_FIELD(f32, dangerPulse, 0.25f, "폭탄 맥박에 맞춘 비네트 추가 (퓨즈가 적을수록)");

@@ -88,3 +88,29 @@ row Impact
 effect dust
 strengthFrom value
 strengthFull 8
+
+row Pickup
+effect star
+
+row ItemUse
+effect spark
+shake 0.05
+shakeRange 8
+
+row TrapSet
+effect dust
+
+row Snared
+effect star
+shake 0.12
+shakeRange 10
+
+row Snared.local
+players local
+hitStop 0.08
+flash 0.15
+flashSeconds 0.15
+flashColor #FF9040
+
+row CrateBack
+effect spark

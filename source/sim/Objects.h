@@ -28,4 +28,10 @@ MEALKIT_OBJECT(Prop) {
     MEALKIT_FIELD(mealkit::f32, mass, 40.0f, "질량 (kg)");
 };
 
+// Item crate: touching it gives a random item (tables/items.table weights) to a player without one; comes back after respawn
+MEALKIT_OBJECT(ItemCrate) {
+    static constexpr const char* kObjectLabel = "아이템 상자";
+    MEALKIT_FIELD(mealkit::Ticks, respawn, mealkit::Ticks::seconds(12.0f), "다시 나타나는 시간 (초)");
+};
+
 } // namespace fusetag

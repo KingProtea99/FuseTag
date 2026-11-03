@@ -128,18 +128,23 @@ Goal: with graybox art still, a muted video of a round reads clearly: who is it,
 ## M4. Items
 
 **Rules**
-- [ ] `tables/items.table` (id, weight, duration, strength, icon), `ItemCrate` scene object with respawn timer, one item slot, `item` action.
-- [ ] Sprint shoes, Snare, Vanish, Scope, Coolant, Shove+ (bigger shove). Each with a scenario test.
-- [ ] Bots use items with simple rules (Coolant below 40% fuse, Snare when chased, etc.).
+- [x] `tables/items.table` (effect, weight, duration, strength), `ItemCrate` with per-crate respawn, one item slot, item action (Q / pad Y); using an item shows a hidden player
+- [x] Sprint shoes, Snare, Vanish, Scope, Coolant, Big shove. Counted in `round_flow` (pickups, snares)
+- [ ] One scenario per item (needs a scripted test like the cage)
+- [x] Bots use items with one rule each (Coolant under 40% fuse when it, Snare/Sprint when chased, Scope when it sees nobody, ...)
 
 **Feel**
-- [ ] Crate: idle bob and spin, glint; on pickup it bursts into confetti, the item icon flies into the HUD slot with an arc and the slot bounces.
-- [ ] Item use: each item has a cast squash, a particle signature and a sound; HUD slot shakes when empty-pressed.
-- [ ] Sprint shoes: speed lines, trailing afterimages (fading copies of the character drawn a few frames behind), fov kick.
-- [ ] Snare: trap snaps shut with a hit stop and squash on the victim; struggle wobble while stuck.
-- [ ] Vanish: dissolve out/in; others see a faint shimmer only when very close.
-- [ ] Scope: screen pulse ring, hidden players outlined for the duration.
-- [ ] Coolant: blue steam burst from the bomb, fuse bar fills with a bounce.
+- [x] Crate: bob, spin, glint; star burst on pickup, spark when it comes back
+- [ ] Item icon flying into the HUD slot (needs item icons, M5)
+- [x] Item use: squash on the user, sparks; HUD slot with the item name and active effects
+- [x] Sprint shoes: afterimages while they last
+- [x] Snare: trap on the floor (small until armed), victim squashes, flashes and struggles; hit stop and orange flash for me
+- [x] Vanish: not drawn for others (pale for me)
+- [ ] Dissolve in/out and close-range shimmer (M5 materials)
+- [x] Scope: hidden and invisible players drawn flashing for me
+- [ ] Screen pulse ring
+- [x] Coolant: fuse bar refills (squash and sparks on use)
+- [ ] Blue steam from the bomb
 
 ---
 

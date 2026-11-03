@@ -195,6 +195,61 @@ board hud 1920 1080
     color $textDim
     textAlign center
   end
+  frame itemSlot
+    pos 1280 960
+    size 260 hug
+    constraints center bottom
+    layout column
+    align center
+    gap 4
+    padding 8 14
+    fill $panel
+    radius $radius
+    visible !meOut
+    text itemName
+      size fill hug
+      content {itemName}
+      visible hasItem
+      fontSize 26
+      color #FFC83C
+      textAlign center
+    end
+    text itemEmpty
+      size fill hug
+      key hud.noItem
+      visible !hasItem
+      fontSize 20
+      color $textDim
+      textAlign center
+    end
+    text itemKey
+      size fill hug
+      key hud.itemKey
+      visible hasItem
+      fontSize 16
+      color $textDim
+      textAlign center
+    end
+  end
+  text effects
+    pos 610 860
+    size 700 hug
+    constraints center bottom
+    content {effects}
+    fontSize 24
+    color #9AD0FF
+    textAlign center
+  end
+  text snared
+    pos 710 820
+    size 500 hug
+    constraints center bottom
+    key hud.snared
+    visible snared
+    fontSize 28
+    color #FF8A50
+    textAlign center
+  end
   text winded
     pos 810 970
     size 300 hug

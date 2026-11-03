@@ -13,6 +13,7 @@
 #include "mealkit/sim/TickEvents.h"
 #include "mealkit/sim/TickTimer.h"
 #include "sim/Objects.h"
+#include "sim/Tables.h"
 #include "sim/Tuning.h"
 
 #include <vector>
@@ -36,6 +37,7 @@ using mealkit::sim::TickTimer;
 inline constexpr u8 kButtonJump = 1;
 inline constexpr u8 kButtonSprint = 2;
 inline constexpr u8 kButtonShove = 4;
+inline constexpr u8 kButtonItem = 8;
 inline constexpr u8 kButtonAuto = 0x80; // the bot AI drives this player (--bot, headless tests); part of the input, so deterministic
 
 inline constexpr u32 kNoSlot = 0xFFFFFFFFu;
@@ -69,6 +71,25 @@ MEALKIT_STRUCT(PropBox) {
     MEALKIT_FIELD(mealkit::physics::BodyId, body, mealkit::physics::kInvalidBody, "물리 바디");
 };
 
+// An item crate from the scene (fixed place); empty while waiting to come back
+MEALKIT_STRUCT(Crate) {
+    MEALKIT_FIELD(Vec3, position, {}, "위치");
+    MEALKIT_FIELD(bool, full, true, "아이템 있음");
+    MEALKIT_FIELD(TickTimer, refill, {}, "다시 나타나는 때");
+    MEALKIT_FIELD(u32, respawn, 0, "다시 나타나는 시간 (틱)");
+};
+
+// A snare on the floor: whoever steps on it (except the one who set it) is stuck for a moment
+MEALKIT_STRUCT(Trap) {
+    MEALKIT_FIELD(Vec3, position, {}, "위치 (바닥)");
+    MEALKIT_FIELD(u32, owner, kNoSlot, "놓은 사람");
+    MEALKIT_FIELD(TickTimer, armed, {}, "작동 시작");
+    MEALKIT_FIELD(TickTimer, expires, {}, "사라지는 때");
+    MEALKIT_FIELD(u32, duration, 0, "묶는 시간 (틱)");
+};
+
+inline constexpr u32 kNoItem = 0xFFFFFFFFu;
+
 // A seat in the match: a person or a bot. Persists through the match (a person who leaves is replaced by a bot).
 MEALKIT_STRUCT(PlayerSlot) {
     MEALKIT_FIELD(bool, connected, false, "참가");
@@ -96,7 +117,13 @@ MEALKIT_STRUCT(PlayerSlot) {
     MEALKIT_FIELD(u32, stillTicks, 0, "숨는 곳에서 가만히 있은 틱");
     MEALKIT_FIELD(u32, searched, 0, "술래가 옆에 있은 틱 (숨었을 때)");
     MEALKIT_FIELD(TickTimer, shove, {}, "밀치기 재사용");
-    MEALKIT_FIELD(TickTimer, stunned, {}, "밀려서 조종 못 함");
+    MEALKIT_FIELD(TickTimer, stunned, {}, "밀려서 조종 못 함 (덫에 걸려도)");
+    MEALKIT_FIELD(u32, item, kNoItem, "가진 아이템 (items.table 행 번호)");
+    MEALKIT_FIELD(TickTimer, speedy, {}, "달리기 신발");
+    MEALKIT_FIELD(f32, speedyScale, 1.0f, "달리기 신발 속도 배율");
+    MEALKIT_FIELD(TickTimer, vanish, {}, "투명");
+    MEALKIT_FIELD(TickTimer, scope, {}, "투시");
+    MEALKIT_FIELD(u32, itemsUsed, 0, "이번 매치에 쓴 아이템");
     // Bot brain (bots and players with kButtonAuto)
     MEALKIT_FIELD(TickTimer, botThink, {}, "봇 다음 판단");
     MEALKIT_FIELD(bool, botRepath, false, "봇 길찾기 대기");
@@ -107,6 +134,7 @@ MEALKIT_STRUCT(PlayerSlot) {
     MEALKIT_FIELD(bool, botShove, false, "봇이 밀치려 함");
     MEALKIT_FIELD(u32, botSearchSpot, kNoSlot, "봇 술래가 뒤지는 숨는 곳");
     MEALKIT_FIELD(u32, botSearchTicks, 0, "그 숨는 곳 옆에 있은 틱");
+    MEALKIT_FIELD(bool, botUseItem, false, "봇이 아이템을 쓰려 함");
     MEALKIT_ARRAY(Vec3, kBotPathPoints, botPath, "봇 경로 지점");
     MEALKIT_FIELD(u32, botPathCount, 0, "봇 경로 지점 수");
     MEALKIT_FIELD(u32, botPathNext, 0, "봇 다음 경로 지점");
@@ -115,7 +143,8 @@ MEALKIT_STRUCT(PlayerSlot) {
 // Simulation → view notifications (sound/effects). sim/ only writes them. The feedback table (assets/feedback.table) chooses feedback by kind name.
 // These are the contract the game feel work builds on (docs/ROADMAP.md M2): add kinds rather than reading state differences in view/.
 MEALKIT_ENUM(EventKind, u8, Spawn, Jump, Land, Fall, Tag, HoldEnd, FuseWarn, FuseDanger, Eliminated, NewIt, SprintStart,
-             StaminaEmpty, RoundWin, Countdown, MatchStart, MatchEnd, Hide, Unhide, Found, Shove, ShoveHit, Impact);
+             StaminaEmpty, RoundWin, Countdown, MatchStart, MatchEnd, Hide, Unhide, Found, Shove, ShoveHit, Impact, Pickup,
+             ItemUse, TrapSet, Snared, CrateBack);
 inline constexpr u8 kNoPlayer = 0xFF;
 
 MEALKIT_STRUCT(GameEvent) {
@@ -148,6 +177,10 @@ MEALKIT_STRUCT(WorldState) {
     MEALKIT_ARRAY(PlayerSlot, mealkit::net::kMaxPlayers, slots, "플레이어 슬롯");
     MEALKIT_FIELD(mealkit::sim::Pool<Pawn>, pawns, {}, "캐릭터");
     MEALKIT_FIELD(mealkit::sim::Pool<PropBox>, props, {}, "물리 물체");
+    MEALKIT_FIELD(mealkit::sim::Pool<Crate>, crates, {}, "아이템 상자");
+    MEALKIT_FIELD(mealkit::sim::Pool<Trap>, traps, {}, "덫");
+    MEALKIT_FIELD(u32, pickups, 0, "이번 매치 주운 아이템 수");
+    MEALKIT_FIELD(u32, snares, 0, "이번 매치 덫에 걸린 수");
     MEALKIT_FIELD(u32, itSlot, kNoSlot, "술래 슬롯");
     MEALKIT_FIELD(u32, roundStart, 0, "라운드 시작 틱");
     MEALKIT_FIELD(u32, outCount, 0, "이번 라운드 탈락 수");
@@ -166,8 +199,8 @@ struct World {
     World& operator=(const World&) = delete;
 
     // humans = people in the match (input senders); bots fill up to tuning.botFill. physicsThreads = 0 matches the core count
-    void reset(u64 seed, u32 humans, const Tuning& tuning, const mealkit::scene::Scene& scene, mealkit::asset::ModelCache& models,
-               u32 tickRate, u32 physicsThreads = 0);
+    void reset(u64 seed, u32 humans, const Tuning& tuning, const mealkit::sim::Table<ItemKind>& items, const mealkit::scene::Scene& scene,
+               mealkit::asset::ModelCache& models, u32 tickRate, u32 physicsThreads = 0);
     // Changes tuning mid-match (editor solo play only)
     void setTuning(const Tuning& value);
     void step(const mealkit::net::TickInputs& inputs);
@@ -186,6 +219,7 @@ struct World {
     std::vector<HideArea> hideSpots; // HideSpot objects in scene order
     Tuning tuning;
     mealkit::sim::MatchRules rules;    // from tuning (sim/Match.cpp matchRules)
+    mealkit::sim::Table<ItemKind> items; // tables/items.table (content hash)
     mealkit::sim::NavGrid nav;         // baked from the static scene at reset, same on every peer (not state)
     mealkit::sim::NavSearch navSearch; // A* scratch memory (not state)
 
@@ -204,5 +238,6 @@ bool aliveInRound(const PlayerSlot& slot);                 // connected and not 
 f32 fuseFraction(const World& world, u32 slot);            // 0..1 of the fuse left
 bool botDriven(const World& world, u32 slot);              // a bot seat, or a player whose input asks for the bot AI
 u32 hideSpotAt(const World& world, const Vec3& feet);      // index of the hide spot the feet are in (kNoSlot if none)
+bool unseen(const WorldState& state, u32 slot);            // hidden or invisible: the view doesn't draw them for others
 
 } // namespace fusetag

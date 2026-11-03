@@ -119,6 +119,7 @@ void movePawns(World& world) {
         if (!p.out && updateStamina(world, pawn.player, sprintWish, moving)) scale *= t.sprintScale;
         if (p.it) scale *= t.itSpeedScale;
         if (!p.boost.ready(s.tick)) scale *= t.escapeBoost;
+        if (!p.speedy.ready(s.tick)) scale *= p.speedyScale;
         if (p.out) continue; // a blown-up body only flies (no movement, no jump)
         if (mealkit::sim::move(world.physics, pawn.mover, intent, t.move, scale, t.gravity, world.tickDt))
             world.events.push(makeEvent(EventKind::Jump, static_cast<u8>(pawn.player), pawn.position, 0.0f));

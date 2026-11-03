@@ -24,6 +24,7 @@ GameInput LocalInput::sample(const input::Actions& actions, const GameCamera& ca
     if (jumpLatch || actions.down("jump")) g.buttons |= kButtonJump;
     if (actions.down("sprint")) g.buttons |= kButtonSprint;
     if (shoveLatch || actions.down("shove")) g.buttons |= kButtonShove;
+    if (itemLatch) g.buttons |= kButtonItem; // a press, not held: one item per press
     return g;
 }
 
