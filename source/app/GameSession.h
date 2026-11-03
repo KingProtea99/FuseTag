@@ -56,7 +56,14 @@ private:
     std::vector<mealkit::render::ReflectionProbe> m_probes; // filled every frame
     std::vector<mealkit::render::PointLight> m_lights;      // filled every frame
     mealkit::f64 m_cameraTime = 0.0, m_menuTime = 0.0;      // last buildFrame times (camera dt)
-    mealkit::f64 m_viewTime = 0.0;                          // clock for view animation (sum of update dt)
+    mealkit::f64 m_viewTime = 0.0;                          // clock for view animation (sum of update dt, stops in hitstop)
+    mealkit::f64 m_juiceTime = 0.0;                         // m_viewTime at the last juice update
+    Juice m_juice;                                          // squash and stretch, bomb, lights, screen kicks (view/Juice.h)
+    WorldState m_frozenPrevious, m_frozenCurrent;           // the picture held during hitstop
+    mealkit::f32 m_frozenAlpha = 0.0f;
+    bool m_frozen = false;
+    std::array<mealkit::Vec3, mealkit::net::kMaxPlayers> m_pawnAt{}; // interpolated character centers this frame
+    std::array<bool, mealkit::net::kMaxPlayers> m_pawnHas{};
     mealkit::u32 m_hud = 0;
     HudVm m_hudVm;
     SaveData m_save; // saves/progress.save

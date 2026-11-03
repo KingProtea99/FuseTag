@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sim/World.h"
+#include "view/Juice.h"
 #include "view/ViewTuning.h"
 
 #include "mealkit/asset/ModelCache.h"
@@ -8,6 +9,7 @@
 #include "mealkit/render/Renderer.h"
 #include "mealkit/scene/Scene.h"
 
+#include <array>
 #include <vector>
 
 // Scene drawing. Simulation state is only read.
@@ -22,8 +24,12 @@ void applyProbes(const mealkit::scene::Scene& scene, mealkit::asset::ModelCache&
 // Static scene objects (spawn points and areas aren't drawn)
 void drawScene(const mealkit::scene::Scene& scene, mealkit::asset::ModelCache& models, const Vec3& eye, mealkit::f64 viewTime,
                mealkit::render::DrawList& out);
-// Characters interpolated by alpha between the previous and current tick, the bomb over whoever is it
-void drawWorld(const World& world, const WorldState& previous, f32 alpha, const ViewTuning& look, mealkit::f64 viewTime,
+// Interpolated character centers by player slot (has = the slot has a character)
+void pawnPositions(const WorldState& previous, const WorldState& current, f32 alpha, std::array<Vec3, mealkit::net::kMaxPlayers>& at,
+                   std::array<bool, mealkit::net::kMaxPlayers>& has);
+// Characters (with juice's squash, lean and flash) and the bomb
+void drawWorld(const WorldState& current, const std::array<Vec3, mealkit::net::kMaxPlayers>& at,
+               const std::array<bool, mealkit::net::kMaxPlayers>& has, const ViewTuning& look, const Juice& juice,
                mealkit::asset::ModelCache& models, mealkit::render::DrawList& out);
 
 } // namespace fusetag

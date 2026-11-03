@@ -25,7 +25,7 @@ void GameCamera::release(Window& window) {
     orbiting = false;
 }
 
-void GameCamera::update(const World& world, const Pawn* me, const Vec3* target, f32 dt, f32 fov) {
+void GameCamera::update(const World& world, const Pawn* me, const Vec3* target, f32 dt, f32 fov, Vec3 shake) {
     camera::BrainInput in;
     in.dt = dt;
     in.look = look;
@@ -33,6 +33,7 @@ void GameCamera::update(const World& world, const Pawn* me, const Vec3* target, 
     in.hasTarget = target != nullptr;
     if (target) in.target = *target;
     in.defaultFov = fov;
+    in.shake = shake;
     const physics::BodyId ignore = me ? me->mover.body : physics::kInvalidBody;
     in.ray = [&world, ignore](Vec3 from, Vec3 to, f32& fraction) { // view-side query, changes nothing
         physics::RayHit hit;

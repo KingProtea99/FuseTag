@@ -47,6 +47,8 @@ void GameSession::start(game::GameContext& ctx, const scene::Scene& scene, const
     });
     m_camera.load(m_scene, ctx.viewTuning<ViewTuning>().camera);
     m_input.clearLatches();
+    m_juice.reset();
+    m_frozen = false;
     m_hudVm = {};
     loadSave(ctx.userFolder);
     ++m_save.matchesStarted;
@@ -99,7 +101,7 @@ void GameSession::update(game::GameContext& ctx, f64 dt) {
         if (ctx.actions.pressed("menu.settings")) ctx.settings.open(); // standard settings screen
     } else
         m_camera.release(ctx.window);
-    m_viewTime += dt;
+    if (!ctx.feedback.hitStop()) m_viewTime += dt; // hitstop freezes only the view (the simulation continues)
 
     // Every confirmed tick: build and send local input, and pass tick events to the feedback table (sound, shake, flash)
     auto sample = [&](u32 tick) {
@@ -112,7 +114,12 @@ void GameSession::update(game::GameContext& ctx, f64 dt) {
         return pi;
     };
     auto onTick = [&](const World& world) {
-        for (const GameEvent& e : world.events) ctx.feedback.trigger(e, session.localPlayer());
+        const u8 local = static_cast<u8>(session.localPlayer());
+        for (const GameEvent& e : world.events) {
+            ctx.feedback.trigger(e, local);
+            if (e.kind == EventKind::Tag && e.other == local) ctx.feedback.play("TagVictim", e.position); // rows match only "player"
+            m_juice.onEvent(e, world, local, m_viewTime);
+        }
     };
     if (!m_flow.pausesSimulation()) sim().update(session, dt, sample, onTick); // pause in solo play halts the match
     SeatNames names;
@@ -132,25 +139,44 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
         menu.update(in);
         menu.apply(ctx.viewport, look.camera.nearPlane, look.camera.farPlane, frame);
     } else {
-        // The camera follows my character. While waiting to respawn it stays at the last spot
-        const WorldState& previous = sim().previous();
-        const WorldState& current = sim().world().state;
-        const Pawn* mine = playerPawn(current, ctx.session.localPlayer());
-        Vec3 target;
-        if (mine) {
-            const Pawn* before = playerPawn(previous, ctx.session.localPlayer());
-            target = lerp(before ? before->position : mine->position, mine->position, sim().alpha());
+        // When hitstop starts, hold the picture of that moment, and return to the current state when it ends
+        const bool hitStop = ctx.feedback.hitStop();
+        if (hitStop && !m_frozen) {
+            m_frozenPrevious = sim().previous();
+            m_frozenCurrent = sim().world().state;
+            m_frozenAlpha = sim().alpha();
         }
+        m_frozen = hitStop;
+        const WorldState& previous = m_frozen ? m_frozenPrevious : sim().previous();
+        const WorldState& current = m_frozen ? m_frozenCurrent : sim().world().state;
+        pawnPositions(previous, current, m_frozen ? m_frozenAlpha : sim().alpha(), m_pawnAt, m_pawnHas);
+        m_juice.update(sim().world(), m_pawnAt, m_pawnHas, static_cast<f32>(m_viewTime - m_juiceTime), m_viewTime, look.juice);
+        m_juiceTime = m_viewTime;
+        for (const Vec3& p : m_juice.sparks) ctx.feedback.playEffect("spark", p);
+
+        // The camera follows my character. While waiting to respawn it stays at the last spot
+        const u32 local = ctx.session.localPlayer();
+        const Pawn* mine = playerPawn(current, local);
+        const bool hasTarget = mine && local < m_pawnHas.size() && m_pawnHas[local];
+        const Vec3 target = hasTarget ? m_pawnAt[local] : Vec3{};
         const f32 dt = static_cast<f32>(std::clamp(now - m_cameraTime, 0.0, 0.1)); // first frame / stalls: no jumps
         m_cameraTime = now;
-        m_camera.update(sim().world(), mine, mine ? &target : nullptr, dt, ctx.settings.values().display.fov);
+        const Vec3 shake = ctx.feedback.cameraShake(hasTarget ? target : m_camera.brain.pose().position);
+        m_camera.update(sim().world(), mine, hasTarget ? &target : nullptr, hitStop ? 0.0f : dt,
+                        ctx.settings.values().display.fov + m_juice.fovOffset(), shake);
         m_camera.apply(ctx.viewport, look.camera, frame);
     }
     applyEnvironment(m_scene.environment, ctx.models, frame);
     applyProbes(m_scene, ctx.models, m_probes, frame);
     applyLights(m_scene, m_lights, frame);
+    if (sim().started()) {
+        m_juice.addLights(m_lights); // after the scene lights: the vector may grow, so point the frame at it again
+        frame.lights = m_lights.data();
+        frame.lightCount = static_cast<u32>(m_lights.size());
+        m_juice.applyPost(frame.post, ctx.settings.values().gameplay.flashScale);
+    }
     drawScene(m_scene, ctx.models, frame.cameraPos, m_viewTime, out);
-    if (sim().started()) drawWorld(sim().world(), sim().previous(), sim().alpha(), look, m_viewTime, ctx.models, out);
+    if (sim().started()) drawWorld(m_frozen ? m_frozenCurrent : sim().world().state, m_pawnAt, m_pawnHas, look, m_juice, ctx.models, out);
 }
 
 // F1: round state and cheats (sent as confirmed commands, so every peer applies them on the same tick)

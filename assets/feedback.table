@@ -1,0 +1,60 @@
+# MealKit table (Reaction). Edit it in the editor's [Feedback] panel.
+# Rows are tick event kinds (sim/World.h EventKind); "Kind.x" rows add more reactions to the same kind.
+# TagVictim is played by view code for the player who was tagged (rows only match the event's player field).
+@format table 1
+
+row Tag
+effect star
+shake 0.08
+shakeSeconds 0.2
+shakeRange 15
+
+row Tag.local
+players local
+shake 0.16
+shakeSeconds 0.2
+flash 0.08
+flashSeconds 0.08
+hitStop 0.06
+
+row TagVictim
+positionFrom
+shake 0.22
+shakeSeconds 0.25
+flash 0.18
+flashSeconds 0.15
+flashColor #FF6040
+hitStop 0.08
+
+row Eliminated
+effect blast
+shake 0.45
+shakeSeconds 0.45
+shakeFrequency 14
+shakeRange 25
+
+row Eliminated.smoke
+effect smoke
+
+row Eliminated.local
+players local
+positionFrom
+flash 0.55
+flashSeconds 0.5
+flashColor #FF8A30
+hitStop 0.12
+
+row Land
+effect dust
+strengthFrom value
+strengthFull 14
+
+row FuseDanger.local
+players local
+positionFrom
+flash 0.12
+flashSeconds 0.2
+flashColor #FF3020
+
+row RoundWin
+effect star

@@ -57,42 +57,45 @@ Goal: 4–8 capsules (players + bots) on a box-and-ramp test map, playing comple
 Goal: with graybox art still, a muted video of a round reads clearly: who is it, how close they are to blowing up, when a tag lands. All view-side.
 
 **Juice toolkit (`view/Juice.h`, `view/Juice.cpp`)**
-- [ ] Easing functions (out-back, out-elastic, in-out-sine, …) and a critically damped / underdamped `Spring` (value, velocity, frequency, damping) on view time.
-- [ ] Per-pawn view state kept between frames: scale spring (x/z and y separately), lean angle spring, bounce offset, last-frame velocity. Driven by events and by interpolated sim state; never fed back into `sim/`.
-- [ ] Respect hit stop (view time freezes) and pause.
-- [ ] Values in `ViewTuning` (`juice.*`) so they are tuned live from the [Tuning] panel.
+- [x] Easing functions (out-back, out-elastic, in-out-sine, …) and a critically damped / underdamped `Spring` (value, velocity, frequency, damping) on view time.
+- [x] Per-pawn view state kept between frames: scale spring (x/z and y separately), lean angle spring, bounce offset, last-frame velocity. Driven by events and by interpolated sim state; never fed back into `sim/`.
+- [x] Respect hit stop (view time freezes) and pause.
+- [x] Values in `ViewTuning` (`juice.*`) so they are tuned live from the [Tuning] panel.
 
 **Squash and stretch**
-- [ ] Jump: anticipation squash (0.06 s) → stretch on takeoff along velocity → settle.
-- [ ] Land: squash scaled by fall speed (`Land` event), with a small dust puff.
-- [ ] Run: subtle bob and stretch along speed; volume preserved (x·y·z ≈ 1).
-- [ ] Turning: lean into the turn from angular velocity; sharp stop leans back.
-- [ ] Tagged: big squash + spin wobble on the new it; old it pops up with a stretch and a speed-line trail.
-- [ ] Hold (new it can't move): shaking "fuming" squash loop until `HoldEnd`, then a launch stretch.
+- [x] Jump: anticipation squash (0.06 s) → stretch on takeoff along velocity → settle.
+- [x] Land: squash scaled by fall speed (`Land` event), with a small dust puff.
+- [x] Run: subtle bob and stretch along speed; volume preserved (x·y·z ≈ 1).
+- [x] Turning: lean into the turn from angular velocity; sharp stop leans back.
+- [x] Tagged: big squash + spin wobble on the new it; old it pops up with a stretch
+- [ ] Speed-line trail on the old it
+- [x] Hold (new it can't move): shaking "fuming" squash loop until `HoldEnd`, then a launch stretch.
 
 **The bomb (the main readability tool)**
-- [ ] The it player carries a bomb model on their head with a burning fuse (spark particles at the tip, short point light).
-- [ ] Bomb pulses (scale spring + emissive) at a rate that rises as the fuse burns; tick sound pitch rises with it (`soundParam` from fuse fraction).
-- [ ] On `Tag`: the bomb flies from the old it to the new one in an arc (0.15–0.2 s, out-back ease), landing with a squash on both.
-- [ ] `FuseLow` 30% / 10%: bomb flashes red (`instanceFlash`), sparks grow, alarm beep.
+- [x] The it player carries a bomb model on their head with a burning fuse (spark particles at the tip, short point light).
+- [x] Bomb pulses (scale spring + emissive) at a rate that rises as the fuse burns; tick sound pitch rises with it (`soundParam` from fuse fraction).
+- [x] On `Tag`: the bomb flies from the old it to the new one in an arc (0.15–0.2 s, out-back ease), landing with a squash on both.
+- [x] Low fuse: bomb flashes (`instanceFlash`), sparks speed up, red screen flash at `FuseDanger`
+- [ ] Alarm beep and fuse hiss (no sounds yet: M5)
 
 **Tag impact**
-- [ ] Feedback rows for `Tag`: hit stop (0.06 s, local players involved only), camera shake by distance, impact sound, star burst particles.
-- [ ] Both players flash white (`instanceFlash`) for 0.1 s; short point light at the contact point.
-- [ ] Camera punch: brief fov kick and a small push toward the hit for the two involved.
+- [x] Feedback rows for `Tag`: hit stop (0.06 s, local players involved only), camera shake by distance, impact sound, star burst particles.
+- [x] Both players flash white (`instanceFlash`) for 0.1 s; short point light at the contact point.
+- [x] Camera punch: brief fov kick and a small push toward the hit for the two involved.
 - [ ] "IT!" world-space popup over the new it: scale from 0 with overshoot, wobble, fade.
 
 **Explosion (elimination)**
-- [ ] Feedback rows for `Eliminated`: big flash for nearby players, shake by distance, deep boom, debris and smoke particles, bright point light fading over 0.3 s, bloom/exposure kick (view code until the engine has a column).
+- [x] `Eliminated`: flash for the one out, shake by distance, blast and smoke particles, point light, bloom kick
+- [ ] Boom sound (M5)
 - [ ] Ragdoll launch from the sim; body blackens (material tint) and dissolves out with the glowing dissolve edge.
 - [ ] Brief slow camera ease toward the blast for the eliminated player, then spectator camera.
 
 **Local danger cues**
-- [ ] When I'm it: red vignette that pulses with the bomb, heartbeat that speeds up below 30% fuse, chromatic aberration kick on each pulse below 10% (scaled by flash setting).
+- [x] When I'm it: red vignette that pulses with the bomb, heartbeat that speeds up below 30% fuse, chromatic aberration kick on each pulse below 10% (scaled by flash setting).
 - [ ] When it is near me: directional arrow at the screen edge and footsteps louder (spatial audio already handles distance).
 
 **Camera**
-- [ ] Third-person spring-arm camera with wall avoidance (engine virtual cameras), fov widens slightly with speed and sprint.
+- [x] Third-person spring-arm camera with wall avoidance (engine virtual cameras), fov widens slightly with speed and sprint.
 - [ ] Landing camera dip, shove recoil.
 
 **Done check**: record a 3-minute bot round with `--capture` frames; every tag and explosion is visible without sound.

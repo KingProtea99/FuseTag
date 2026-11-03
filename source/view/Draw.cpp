@@ -2,8 +2,6 @@
 
 #include "mealkit/render/SceneLights.h"
 
-#include <cmath>
-
 using namespace mealkit;
 
 namespace fusetag {
@@ -55,27 +53,34 @@ void drawScene(const scene::Scene& scene, asset::ModelCache& models, const Vec3&
     }
 }
 
-void drawWorld(const World& world, const WorldState& previous, f32 alpha, const ViewTuning& look, f64 viewTime,
-               asset::ModelCache& models, render::DrawList& out) {
-    const WorldState& current = world.state;
-    const render::MeshId box = models.boxMesh();
+void pawnPositions(const WorldState& previous, const WorldState& current, f32 alpha, std::array<Vec3, net::kMaxPlayers>& at,
+                   std::array<bool, net::kMaxPlayers>& has) {
+    has = {};
     for (auto [id, pawn] : current.pawns) {
+        if (pawn.player >= net::kMaxPlayers) continue;
         const Pawn* before = previous.pawns.get(id); // nullptr when it appeared this tick
-        const Vec3 at = lerp(before ? before->position : pawn.position, pawn.position, alpha);
-        const PlayerSlot& slot = current.slots[pawn.player];
-        const Color color = slot.out ? look.outColor : look.playerColors[pawn.player % look.playerColors.size()];
-        out.add(box, {at, color.value, Quat{}, look.pawnSize, 0});
-        if (!slot.it) continue;
-        // The bomb pulses faster as the fuse burns down (placeholder for the M2 bomb)
-        const f32 left = fuseFraction(world, pawn.player);
-        const f32 rate = look.bombPulseSlow + (look.bombPulseFast - look.bombPulseSlow) * (1.0f - left);
-        const f32 pulse = 1.0f + look.bombPulseSize * std::sin(static_cast<f32>(viewTime) * rate * 6.2831853f);
-        const Vec3 above = at + Vec3{0.0f, look.pawnSize.y * 0.5f + look.bombHeight, 0.0f};
-        const u32 flash = left < look.bombFlashBelow && std::sin(static_cast<f32>(viewTime) * rate * 6.2831853f) > 0.0f
-                              ? render::instanceFlash(0, 0.8f)
-                              : 0u;
-        out.add(box, {above, look.bombColor.value, Quat{}, Vec3{look.bombSize, look.bombSize, look.bombSize} * pulse, flash});
+        at[pawn.player] = lerp(before ? before->position : pawn.position, pawn.position, alpha);
+        has[pawn.player] = true;
     }
+}
+
+void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayers>& at, const std::array<bool, net::kMaxPlayers>& has,
+               const ViewTuning& look, const Juice& juice, asset::ModelCache& models, render::DrawList& out) {
+    const render::MeshId box = models.boxMesh();
+    for (u32 slot = 0; slot < net::kMaxPlayers; ++slot) {
+        if (!has[slot]) continue;
+        const PlayerSlot& p = current.slots[slot];
+        const Color color = p.out ? look.outColor : look.playerColors[slot % look.playerColors.size()];
+        const PawnLook l = juice.look(slot);
+        const Vec3 size{look.pawnSize.x * l.scale.x, look.pawnSize.y * l.scale.y, look.pawnSize.z * l.scale.z};
+        // Squash about the feet: the box center moves down as it squashes
+        const Vec3 center = at[slot] + l.offset + Vec3{0.0f, (size.y - look.pawnSize.y) * 0.5f, 0.0f};
+        out.add(box, {center, color.value, l.rotation, size, render::instanceFlash(0, l.flash)});
+    }
+    Vec3 bombAt;
+    f32 bombScale = 0.0f, bombFlash = 0.0f;
+    if (juice.bomb(bombAt, bombScale, bombFlash))
+        out.add(box, {bombAt, look.juice.bombColor.value, Quat{}, Vec3{bombScale, bombScale, bombScale}, render::instanceFlash(0, bombFlash)});
 }
 
 } // namespace fusetag
