@@ -1,5 +1,8 @@
 #include "app/GameSession.h"
 #include "app/Headless.h"
+#include "sim/Commands.h"
+
+#include "mealkit/sim/Commands.h"
 
 #include "mealkit/feedback/Feedback.h"
 #include "mealkit/game/GameData.h"
@@ -10,6 +13,10 @@
 
 #include <algorithm>
 #include <cstring>
+
+#if MEALKIT_DEBUG_UI
+#include <imgui.h>
+#endif
 
 using namespace mealkit;
 
@@ -144,6 +151,50 @@ void GameSession::buildFrame(game::GameContext& ctx, f64 now, render::FrameParam
     applyLights(m_scene, m_lights, frame);
     drawScene(m_scene, ctx.models, frame.cameraPos, m_viewTime, out);
     if (sim().started()) drawWorld(sim().world(), sim().previous(), sim().alpha(), look, m_viewTime, ctx.models, out);
+}
+
+// F1: round state and cheats (sent as confirmed commands, so every peer applies them on the same tick)
+void GameSession::debugUi(game::GameContext& ctx) {
+#if MEALKIT_DEBUG_UI
+    if (!sim().started()) return;
+    const World& world = sim().world();
+    const WorldState& s = world.state;
+    ImGui::SetNextWindowPos(ImVec2(ctx.viewport.x + 10.0f, ctx.viewport.y + 200.0f), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("FuseTag", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("tick %u | round %u | phase %u | swaps %u | out %u", s.tick, s.flow.round, static_cast<u32>(s.flow.phase), s.swaps,
+                    s.outCount);
+        auto cheat = [&](CheatKind kind, u32 slot) {
+            DebugCheat d;
+            d.kind = kind;
+            d.slot = slot;
+            sim::sendCommand(ctx.session, d);
+        };
+        for (u32 i = 0; i < s.playerCount; ++i) {
+            const PlayerSlot& p = s.slots[i];
+            ImGui::PushID(static_cast<int>(i));
+            const Pawn* pawn = playerPawn(s, i);
+            ImGui::Text("%u%s fuse %4.1fs %s%s score %u", i + 1, p.bot ? " bot" : "    ",
+                        static_cast<f32>(p.fuse) / static_cast<f32>(world.tickRate), p.it ? "IT " : "   ", p.out ? "OUT" : "   ", p.score);
+            ImGui::SameLine();
+            if (ImGui::SmallButton("it")) cheat(CheatKind::MakeIt, i);
+            ImGui::SameLine();
+            if (ImGui::SmallButton("fill")) cheat(CheatKind::RefillFuse, i);
+            ImGui::SameLine();
+            if (ImGui::SmallButton("-5s")) cheat(CheatKind::BurnFuse, i);
+            ImGui::SameLine();
+            if (ImGui::SmallButton("out")) cheat(CheatKind::Eliminate, i);
+            if (pawn && p.bot && p.botPathCount > 0) {
+                ImGui::SameLine();
+                ImGui::TextDisabled("-> %.0f %.0f", p.botGoal.x, p.botGoal.z);
+            }
+            ImGui::PopID();
+        }
+        if (ImGui::Button(world.tuning.navDebug ? "Hide bot paths" : "Show bot paths")) cheat(CheatKind::ToggleNavDebug, 0);
+    }
+    ImGui::End();
+#else
+    (void)ctx;
+#endif
 }
 
 } // namespace fusetag

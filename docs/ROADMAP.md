@@ -43,11 +43,11 @@ Goal: 4–8 capsules (players + bots) on a box-and-ramp test map, playing comple
 **Screens (bare)**
 - [x] HUD: fuse bar per player (color, name), "it" marker, round timer, "You're it!" text. World-space name tags.
 - [x] Results: placement per round, total points (`FlowGame` `score`).
-- [ ] Debug UI (F1): give fuse, force it, kill bots, show bot targets.
+- [x] Debug UI (F1): make it, refill/burn fuse, eliminate, bot goals, bot paths (cheats are confirmed commands)
 
 **Tests**
 - [x] `tests/round_flow.scenario`, `tests/fuse_rules.scenario` (bot match: swaps, burn, placement points, rounds)
-- [ ] Focused scenarios (tag-back immunity, burn carry-over) need a scripted test scene or input recording
+- [x] Focused scenarios on the `scenes/tests/cage.scene` test arena: `tag_rules` (hold, swap, immunity, burn carry-over), `elimination` (out order, ramp, placement)
 - [x] Replay `replays/graybox_3p_seed7.rec`, `mp_test` with lag `-Lag 120 -Jitter 30 -Loss 3`.
 
 ---

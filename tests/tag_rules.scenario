@@ -1,0 +1,22 @@
+# Tag rules in the cage test arena (six bots in a 10 m box). Play starts at 3 s; the first it (slot 3) is held for startHold (3 s),
+# then tags slot 5 about 0.7 s later. Update with FuseTag_headless --test <file> --update-expected and check the comments still hold.
+seed 7
+scene scenes/tests/cage.scene
+# First it is held: nobody is tagged during startHold
+tick 179 itSlot == 3
+tick 179 swaps == 0
+# The swap: roles change on one tick, the tagger gets tag-back immunity from the new it and a speed boost
+tick 204 itSlot == 5
+tick 204 swaps == 1
+tick 204 slots[5].it == true
+tick 204 slots[3].it == false
+tick 204 slots[3].immuneFrom == 5
+tick 204 slots[3].tags == 1
+# The new it is held for tagHold (1.5 s): still one swap right before it ends
+tick 245 swaps == 1
+# Burned fuse carries over: slot 3 burned while it, then stays the same while running
+tick 210 slots[3].fuse == 786
+tick 280 slots[3].fuse == 786
+tick 210 slots[0].fuse == 900
+# Slot 5 burns while it
+tick 280 slots[5].fuse < 900
