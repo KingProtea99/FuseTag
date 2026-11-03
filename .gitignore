@@ -1,0 +1,11 @@
+build/
+export/
+.vs/
+# Screenshots and captures only (textures and icon.png are committed)
+/screenshot*.png
+/capture*.png
+/out*.png
+*.autosave
+mealkit_editor.ini
+.upgrade_backup/
+*.new

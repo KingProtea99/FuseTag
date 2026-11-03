@@ -1,0 +1,8 @@
+# MealKit project (path value). Edit in the editor via [File] > [Project Settings]. Game items use game.
+@format project 1
+name FuseTag
+engine D:\MealKit-Engine\MealKit
+engineVersion 0.9.0
+scene scenes/main.scene
+templateName empty
+created 2026-11-03

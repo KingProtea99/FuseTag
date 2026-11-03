@@ -1,0 +1,15 @@
+# MealKit game project editor settings (same rules as the engine). C++ formatting rules are in .clang-format.
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{json,yml,yaml}]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false

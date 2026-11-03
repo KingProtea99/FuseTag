@@ -1,0 +1,62 @@
+{
+    // Ctrl+Shift+B: build game code → the running editor swaps it in automatically (hot reload).
+    // Other tasks: Ctrl+Shift+P → "Tasks: Run Task"
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Game Code",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": ["Editor"],
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Build Release",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": ["Release"],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": ["Debug"],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Build Profile (Tracy)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": ["Profile"],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Export Game",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": ["Export"],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Open Editor",
+            "type": "shell",
+            "command": "${workspaceFolder}\\editor.bat",
+            "problemMatcher": []
+        },
+        {
+            "label": "Multiplayer Determinism Test",
+            "type": "shell",
+            "command": "powershell",
+            "args": ["-ExecutionPolicy", "Bypass", "-File", "D:/MealKit-Engine/MealKit/tools/mp_test.ps1", "-Clients", "3", "-Ticks", "900",
+                     "-Exe", "${workspaceFolder}\\build\\Release\\bin\\FuseTag.exe"],
+            "dependsOn": "Build Release",
+            "problemMatcher": []
+        }
+    ]
+}

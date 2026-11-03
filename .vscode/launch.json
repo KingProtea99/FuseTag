@@ -1,0 +1,45 @@
+{
+    // F5: builds the selected configuration and runs it under the debugger (requires the C/C++ extension ms-vscode.cpptools)
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Sets breakpoints in game code (FuseTag_game.dll) from the editor. While debugging, the PDB is locked and hot reload builds may fail.
+            "name": "Editor (debug game code)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "D:/MealKit-Engine/MealKit/build/Editor/bin/MealKitEditor.exe",
+            "args": ["--project", "${workspaceFolder}"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Game Code"
+        },
+        {
+            "name": "Game (Debug)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/bin/FuseTag.exe",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Debug"
+        },
+        {
+            "name": "Game Host (Release)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/bin/FuseTag.exe",
+            "args": ["--host", "--local"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Release"
+        },
+        {
+            "name": "Game Join 127.0.0.1 (Release)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/bin/FuseTag.exe",
+            "args": ["--join", "127.0.0.1"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        }
+    ]
+}
