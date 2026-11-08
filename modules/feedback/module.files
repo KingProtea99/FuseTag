@@ -1,0 +1,8 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine feedback 0.1.3 v0.1.3 2134f7a20b5b321bc8e47a0d8b56df61301f7b1e https://github.com/MealKit-Engine/MealKit-Feedback
+16d21742ce75bc2370ab63635fb2710fadc9a9598494c2475cf635ed322d3324  editor/mealkit/editor/FeedbackPanel.cpp
+8b31eec38fc51bda111b4903c47bc49ed669473d5859a6e5d1aac8d62110a291  editor/mealkit/editor/FeedbackPanel.h
+09feeef18a8bf246acd454beb327258a5350013965071e354057caee627ad152  include/mealkit/feedback/Feedback.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+e90c8e4d712529419a8baaf6c91e50ae1d76cc2933b69495fd7325c2d4ff33ac  module.txt
+330ad9290507fad796723bb45b1dbdc4e4be0511e5d9e330ff587cdca588a3d2  src/mealkit/feedback/Feedback.cpp

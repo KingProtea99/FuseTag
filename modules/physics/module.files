@@ -1,0 +1,6 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine physics 0.1.2 v0.1.2 d10246c2bead2a9f719981a54880dd5bfdb0e30e https://github.com/MealKit-Engine/MealKit-Physics
+ff926827715945f46048740b25cde89a9b020ee2f7323d2006783d976801cf02  include/mealkit/physics/PhysicsWorld.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+ad84438ebd844a2cfbd0a2c2943b66c48acfba4ad9dd8eb1d2484f8cb780e8ac  module.txt
+76a95b0a4b537d0a601112d5b9dd4cc8a398c7bf6bbf8c0af64ffd55c9c4e40e  src/mealkit/physics/PhysicsWorld.cpp

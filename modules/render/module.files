@@ -1,0 +1,15 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine render 0.1.2 v0.1.2 bad62e7d8e4069b4488aed955f7581a4995c49c9 https://github.com/MealKit-Engine/MealKit-Render
+3f3387dfa3f4a206743888edc67a69315962727c7e540b59d9781d93b2b9a81d  editor/mealkit/editor/LookdevPanel.cpp
+bf20ac2aa81764f0302ecddb0899b43fe4d4902d1718e88415a9a6f7e71a8382  editor/mealkit/editor/LookdevPanel.h
+84ba641e01f50d7fa70826294558d691db8c12738b4cf7e3a4acbb38097523c9  include/mealkit/render/Culling.h
+6bca208deb3125361a8200b82d4d36accec887c011653a72a132301b82f3fcfc  include/mealkit/render/DrawList.h
+8f1f4dc0493b884b2a996d9cc11be372a2f1a122b796eba2827f757bc24dfb22  include/mealkit/render/Mesh.h
+b9de490409b818b2ca9c912e2bc5709e3a1a9c78699b4e2df164cd081cad4dbe  include/mealkit/render/Renderer.h
+28473d26996c8976e49d0b1f45f4b43923e34c62e9b8d42fff47238dfed65ea2  include/mealkit/render/SceneLights.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+6668125bf01a2b84f1da1b30fc7fa3ff5b60268abdfb7323c6dc7dd2103b84e2  module.txt
+8bddf16770c190c7525ae77a4baec9c10af5b65fdbc3da01f6b6122053926a9e  src/mealkit/render/Mesh.cpp
+ccaca8dbc434aea265e2a10124ba24e6ff1db2c3e1820744f593f94516ca88de  src/mealkit/render/Renderer.cpp
+facb04b6a83510a1e6dd148774bafdd99de63d5735db423a0d8f0f1899ad697f  src/mealkit/render/ShaderReload.cpp
+0669e41f6d14b76c30c56b553b781de2f233382e572d3c05c3b6e1ea66616ded  src/mealkit/render/ShaderReload.h

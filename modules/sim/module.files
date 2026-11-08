@@ -1,0 +1,13 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine sim 0.1.2 v0.1.2 776572f56dcdfb04c9fd1e263dbfe17913d062df https://github.com/MealKit-Engine/MealKit-Sim
+828632decf713ac0b1e06bcdfd3713fb46f9085cdb64adc49eb0d0e335e8319d  include/mealkit/sim/Commands.h
+1bd7d8c2058f47495bd3333130c18a655461a4b00543dc434c83bce2835c550c  include/mealkit/sim/MatchFlow.h
+9ad9318748556fc53d7fd97509cd71889384cac63072c0435d10140ccff81d3a  include/mealkit/sim/Movement.h
+a494fd8c44fcc9b4472deb4d0a36351abf6a01a9d2cb2f4b2f7828fb405877a4  include/mealkit/sim/NavGrid.h
+2b5f1320b4dfd3561bb57ec58ed4b88cfd77ddd6203b38fe9a98ca172930a830  include/mealkit/sim/Pool.h
+d93ff99926c0797684d751a1def593fdf633ff9c3a359fafd1427cebbd31ba14  include/mealkit/sim/Ragdoll.h
+9267c225b670b0583bf671b9528965057858e4e24cdd2ba919edf4083e8e5c7c  include/mealkit/sim/Table.h
+029c0976a5a535bc91adbe501594c8166d30db913ab420404edd58bad3eeae5e  include/mealkit/sim/TickEvents.h
+3cf3ad35b87d03fc93afa02ab5dc3f9d29aa3cb4fe266d217836fbf420fc222a  include/mealkit/sim/TickTimer.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+21022ed3d41f1c5c256b0bf4a78e1e2aff71b37849b0ba97bffef18fc0d58896  module.txt

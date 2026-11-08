@@ -1,0 +1,11 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine net 0.1.2 v0.1.2 e84d576dfff6baa6843dadb9d2b7f36ff6c579ed https://github.com/MealKit-Engine/MealKit-Net
+4d9f56101d765adfadca780c82d390939516dfb7eac861d782d75883039f0fdb  include/mealkit/net/Conditions.h
+47edca37025e430c9ca5326a8979f6470a4c5f190daf878acebb9255e3f887d7  include/mealkit/net/Lockstep.h
+5ebdc31ae3d40f0b3ded3ce98fd3ddc0991488940697d092f63eb26956d71e1d  include/mealkit/net/Rooms.h
+8acd64e5fbe5e4d3c503a2568fa82ea05d6e2ded4d6f36544edd24e03c1635a5  include/mealkit/net/Transport.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+57b4768b33560d86598d11faac240edbcb5e985285687e752125740d1a2fe328  module.txt
+73aabe27c6855d7e20983df5b24bdc55cdb513619f4c0ca15d003a894c7e9165  src/mealkit/net/Conditions.cpp
+8b6761b9f8d8042ae76da28b12e735b18afd2f827fc9e60f87d56b742491b2fa  src/mealkit/net/Lockstep.cpp
+7601a2c6f81d43d42b2e32a356bcc32b5b64bd09e8159877ec24ae3d7ebbf7bd  src/mealkit/net/Rooms.cpp

@@ -1,0 +1,7 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine audio 0.1.0 - - -
+3843f1dde2952f8d28a862f3acf206d121d3e590101da24a7fddab0c19918a13  editor/mealkit/editor/SoundPanel.cpp
+71555a2bfc2c45692a88ada2cc2f13fcaee79cb4031ddc0073a313a39325750a  editor/mealkit/editor/SoundPanel.h
+96568782d26d731a3475b1bebabea1b2fb647d1e67caeb6364ea3146075d013c  include/mealkit/audio/Audio.h
+f48b3c0a41f77f44d9af19ecb4ad5ebe9512ddcdadb037e7e5473c1a7a89b6da  module.txt
+a6365c915a3a872a1fd45764cc66759aedd1dcaa9971c1df0f5e2b7786c0aee2  src/mealkit/audio/Audio.cpp

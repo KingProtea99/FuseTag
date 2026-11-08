@@ -1,0 +1,14 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine ui 0.1.2 v0.1.2 ca3357b8ae0ba1bd7bdfbf87980d5fb58031cc51 https://github.com/MealKit-Engine/MealKit-UI
+e8f96122a140c2d08e7e9a272ae79aa34284bfb1760343b8bd9426202881d81d  editor/mealkit/editor/UiCheck.cpp
+5ef492ea09dc7199b5745412703123f6c90719f71494e74ec1f4aba17cdb126d  editor/mealkit/editor/UiCheck.h
+dd17cb40af7e522db8285c0ec7f1f2fd4a6e398b0ac7fe7120ad38e1421749e7  editor/mealkit/editor/UiPanel.cpp
+9c3414fbc422bd3b3eb70c6ed5ec8bfff4ed7a8a1803ffab1f5a331a815cba8e  editor/mealkit/editor/UiPanel.h
+d7d0eebf6e56ee53fda83c640d4469c71f20db40d72988ade457936ecf52f0b1  editor/mealkit/editor/UiPanelDrag.cpp
+64d8a04d63a7f8231afaca2ef5afcc83fb1f97e44aea7d5f652d1b386a0ed8f7  editor/mealkit/editor/UiPanelEdit.cpp
+8d249ccac182fad3c7ec3f41f3e8d7e40cd9f2e2ce04200b5a7ad1ee0c09ace8  include/mealkit/ui/Document.h
+d18cd6db4c1379840b725c1fab82f8c6d3a60542567a109c9c521c9077266d20  include/mealkit/ui/Ui.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+99ef8acb0ecad27abd8c2632c8d94396641d1f17c07cd86741ac3931189f70c8  module.txt
+5353a3f2e594754c48c01bd5184c767cf6b69e96c4fb50277ef2980f642eb9cb  src/mealkit/ui/StbImpl.cpp
+0bff59ff96c932b1035d87375abb9b297fd7dcd6951efd4305c94d2ca5e8f02e  src/mealkit/ui/Ui.cpp

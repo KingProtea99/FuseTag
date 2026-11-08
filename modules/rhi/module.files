@@ -1,0 +1,15 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine rhi 0.1.2 v0.1.2 5251d09081ae2f057794e03354c573bd7aed1e87 https://github.com/MealKit-Engine/MealKit-RHI
+80d819aaaf636bfe477fcf0d394d46c1033d545f695c73bb98a7381e3e44349a  include/mealkit/rhi/GpuCapture.h
+a0523e03725f41b762a6ef8096f215d984434c68f253be18893b0ee404369c5d  include/mealkit/rhi/Rhi.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+8c3440b1022e0e89cba5b04d5bf1d621ebc50e7ae5ebced8723c596d93a5dcc5  module.txt
+1f0bab9f7f75a3bc125668316f72255f896c333ec8ca69667d4cf79a57ac47a8  src/mealkit/rhi/dx12/Dx12.h
+4265ad13cbd464bf91bdcdfc7da6a27a778f2f36feeaf02535fa60e4951b2090  src/mealkit/rhi/dx12/Dx12Device.cpp
+3b876f7fb37fb6008f64e5ba5e1b48f94bcbd2fc6f51276aba43514d62f04523  src/mealkit/rhi/dx12/Dx12ImGui.cpp
+a723d44ba5b1ac9435cc9fc3020d7ce8ca8e161b24fe91ef186b19016e1725d8  src/mealkit/rhi/GpuCapture.cpp
+6fc190f6a4f186b5396e2c0bf55f15b725298443531c4aab7e12bf912ae15c53  src/mealkit/rhi/PipelineCache.h
+dbec44f5bafbe40249410712c6aa9b757539482be1d2dbc221f441b3797c8296  src/mealkit/rhi/vulkan/Vk.h
+321bcf83cf6c0018d56ce5d38d80ffc0ed03a8b08e415ca599bdd536f10b27d8  src/mealkit/rhi/vulkan/VkDevice.cpp
+50cd4e872a505eea71b09348681e3b2544568977b00eac5ca10f10a9c9df3b4a  src/mealkit/rhi/vulkan/VkImGui.cpp
+6b637add33ed44e6adc2013fa79afdbff54bfb6c3bed8e5d7396b06e03b91b08  src/mealkit/rhi/vulkan/VkLibs.cpp

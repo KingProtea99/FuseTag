@@ -1,0 +1,13 @@
+# MealKit module manifest, engine module (docs/ENGINE_MODULES.md "Manifest"; source modules: docs/MODULES.md). Checked by tools\check_modules.ps1.
+# requires: modules this folder may include besides the kernel (core, platform, jobs), as name minVersion.
+@format module 1
+type engine
+name asset
+version 0.1.2
+engine 0.9
+kind sim
+layer core
+requires data 0.1 scene 0.1 sim 0.1
+tags asset
+transitional render rhi
+summary Models, animation, cutscenes, terrain, texture cache, cooking

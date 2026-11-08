@@ -1,0 +1,6 @@
+# MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
+source engine online 0.1.2 v0.1.2 d938f1bf0c2b407b5abb4c523b5a5cf40020d884 https://github.com/MealKit-Engine/MealKit-Online
+438d51ac86649f7ec59ee5792cddcacfc3f5571838eaf378fc4bac8eb4edd113  include/mealkit/online/Online.h
+f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
+a5a1850a3f137212f6c179e1a4710ddd5046f5358b441668a046cd5a93547d53  module.txt
+336a636cc934a7203a39cc6080915326f3baccc35d8bfce5b7329bdcda811e42  src/mealkit/online/OnlineNone.cpp
