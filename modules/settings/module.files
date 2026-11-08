@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine settings 0.1.4 v0.1.4 87231d99be6b411420ff6aec931c3f5893787f36 https://github.com/MealKit-Engine/MealKit-Settings
+source engine settings 0.1.4 v0.1.4 87231d99be6b411420ff6aec931c3f5893787f36 https://github.com/MealKit-Engine/module-settings
 dd02f48d87542ffdd774fd75f9922e59155387ccd363ce8fddc6c7b7dec94078  include/mealkit/settings/Settings.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
 8934af86c9b2a733d82a8d4a26ba03ad7360b3fa8153beb18d98e6b47519919c  module.txt

@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine rhi 0.1.2 v0.1.2 5251d09081ae2f057794e03354c573bd7aed1e87 https://github.com/MealKit-Engine/MealKit-RHI
+source engine rhi 0.1.2 v0.1.2 5251d09081ae2f057794e03354c573bd7aed1e87 https://github.com/MealKit-Engine/module-rhi
 80d819aaaf636bfe477fcf0d394d46c1033d545f695c73bb98a7381e3e44349a  include/mealkit/rhi/GpuCapture.h
 a0523e03725f41b762a6ef8096f215d984434c68f253be18893b0ee404369c5d  include/mealkit/rhi/Rhi.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE

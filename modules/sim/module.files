@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine sim 0.1.2 v0.1.2 776572f56dcdfb04c9fd1e263dbfe17913d062df https://github.com/MealKit-Engine/MealKit-Sim
+source engine sim 0.1.2 v0.1.2 776572f56dcdfb04c9fd1e263dbfe17913d062df https://github.com/MealKit-Engine/module-sim
 828632decf713ac0b1e06bcdfd3713fb46f9085cdb64adc49eb0d0e335e8319d  include/mealkit/sim/Commands.h
 1bd7d8c2058f47495bd3333130c18a655461a4b00543dc434c83bce2835c550c  include/mealkit/sim/MatchFlow.h
 9ad9318748556fc53d7fd97509cd71889384cac63072c0435d10140ccff81d3a  include/mealkit/sim/Movement.h

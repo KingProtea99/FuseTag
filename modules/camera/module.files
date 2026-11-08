@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine camera 0.1.2 v0.1.2 9e5f51463ce32806e2a985504d9b4cd7d62db2b8 https://github.com/MealKit-Engine/MealKit-Camera
+source engine camera 0.1.2 v0.1.2 9e5f51463ce32806e2a985504d9b4cd7d62db2b8 https://github.com/MealKit-Engine/module-camera
 642afb5ed7327a47225850a754f4350c0a3ecf2e88c8b047aa2a42fe2038467b  include/mealkit/camera/Brain.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
 a60d522474ffaf42988819617163515edf88a41c058f4df23f9453280ad0a92c  module.txt

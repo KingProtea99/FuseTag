@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine session 0.1.2 v0.1.2 31b2239bb50c6fc18e9d641c9e026f069b45e200 https://github.com/MealKit-Engine/MealKit-Session
+source engine session 0.1.2 v0.1.2 31b2239bb50c6fc18e9d641c9e026f069b45e200 https://github.com/MealKit-Engine/module-session
 61c1c6f9b499179a10e40fbd7890760f1a16af5aa03bcaa5d493b4de71bd632b  include/mealkit/session/LocalSession.h
 d17a5eb4a17a36dbdfed94479b4b976d60f1948e89c3d6554c540f7610094dd5  include/mealkit/session/Session.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE

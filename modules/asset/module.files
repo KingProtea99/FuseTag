@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine asset 0.1.2 v0.1.2 91b82a902d28d7a1fa88530f8d318b29ab619f77 https://github.com/MealKit-Engine/MealKit-Asset
+source engine asset 0.1.2 v0.1.2 91b82a902d28d7a1fa88530f8d318b29ab619f77 https://github.com/MealKit-Engine/module-asset
 0e896c96a87f3186cdc3a4c41f2c9184c47c2f7c75a3e1b7c47b08f7edbaed8c  include/mealkit/asset/Animation.h
 40f34e8dc37511727430e99a8e453cf1b00541df9b591c906f96537ca08b35f3  include/mealkit/asset/AnimStates.h
 31f01d75632642a49aeb2590e7452d6ce5105089d6bef9a8f38ce7bf2ff7061a  include/mealkit/asset/Budget.h

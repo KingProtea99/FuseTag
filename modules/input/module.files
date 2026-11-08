@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine input 0.1.2 v0.1.2 2dcb56c28d9e457775eb5661307b4e387c3bbcb0 https://github.com/MealKit-Engine/MealKit-Input
+source engine input 0.1.2 v0.1.2 2dcb56c28d9e457775eb5661307b4e387c3bbcb0 https://github.com/MealKit-Engine/module-input
 690fe1c8e90e917cbe6b2d5734c4043686330b1ec6ebe1050538bcb04772c29d  include/mealkit/input/Actions.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
 bc611fcfe101b1508bf506d4704d91bda3d6b26a67272756caabc852a99a815a  module.txt

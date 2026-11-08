@@ -1,4 +1,4 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine online-steam 0.1.2 v0.1.2 d938f1bf0c2b407b5abb4c523b5a5cf40020d884 https://github.com/MealKit-Engine/MealKit-Online
+source engine online-steam 0.1.2 v0.1.2 d938f1bf0c2b407b5abb4c523b5a5cf40020d884 https://github.com/MealKit-Engine/module-online
 b61982bceba84dd9d693094261003cab155829ee8cb2d0a44a9dc2cd8b1a6fbe  module.txt
 29c6ad972d0bc3f50e1a60df5d36418efe1ee8c56ee9f1c8ddb9119b923d79a2  src/mealkit/online/OnlineSteam.cpp

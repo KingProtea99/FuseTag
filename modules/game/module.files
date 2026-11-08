@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine game 0.1.3 v0.1.3 b310e129c90dd4acef5c5e0bf61bcd10b98fd474 https://github.com/MealKit-Engine/MealKit-Game
+source engine game 0.1.3 v0.1.3 b310e129c90dd4acef5c5e0bf61bcd10b98fd474 https://github.com/MealKit-Engine/module-game
 2723ca860f4a1eff15875be8ce9800635d7204406ddf236b6a27a987fd13f621  include/mealkit/game/BugReport.h
 b67869c255f6759b9a6b91375d3b2f0a797080ce483ccddbea02a5dc7abab422  include/mealkit/game/BuildInfo.h
 bd6bc5ff1accc1df34f746c36c44f5cdfa65c6320e02d2ac8b1cc41c40bc4fa1  include/mealkit/game/DesyncDump.h

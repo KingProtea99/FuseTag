@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine loc 0.1.2 v0.1.2 4ba365bd3436da7bd04895eb012039d66a791d95 https://github.com/MealKit-Engine/MealKit-Loc
+source engine loc 0.1.2 v0.1.2 4ba365bd3436da7bd04895eb012039d66a791d95 https://github.com/MealKit-Engine/module-loc
 ce02d8cdae522cc72bd0492e57bf56ddd5e8292eff0c52515b743bd7810850f7  include/mealkit/loc/Strings.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
 591bf616c7f84034ef38be4b14d2449bf24878d956e06febda74b0f23ce40264  module.txt

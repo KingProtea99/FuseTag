@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine render 0.1.2 v0.1.2 bad62e7d8e4069b4488aed955f7581a4995c49c9 https://github.com/MealKit-Engine/MealKit-Render
+source engine render 0.1.2 v0.1.2 bad62e7d8e4069b4488aed955f7581a4995c49c9 https://github.com/MealKit-Engine/module-render
 3f3387dfa3f4a206743888edc67a69315962727c7e540b59d9781d93b2b9a81d  editor/mealkit/editor/LookdevPanel.cpp
 bf20ac2aa81764f0302ecddb0899b43fe4d4902d1718e88415a9a6f7e71a8382  editor/mealkit/editor/LookdevPanel.h
 84ba641e01f50d7fa70826294558d691db8c12738b4cf7e3a4acbb38097523c9  include/mealkit/render/Culling.h

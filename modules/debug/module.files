@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine debug 0.1.2 v0.1.2 d8ad98765068c1a233a3f94c852f600ac2517cad https://github.com/MealKit-Engine/MealKit-Debug
+source engine debug 0.1.2 v0.1.2 d8ad98765068c1a233a3f94c852f600ac2517cad https://github.com/MealKit-Engine/module-debug
 aa6349089cf1b2b89601f819ce2ad872255b442c88cdb362e55df69c7d5d3590  include/mealkit/debug/DebugDraw.h
 e5d658cb0b3021528e15d69862bdfd703047228aa421b76462a991d87e947ea9  include/mealkit/debug/DebugDrawRender.h
 913719fa615034bd5d349155976e001afa62f6b5a43e9c9da921f68158caa7b5  include/mealkit/debug/ImGuiLayer.h

@@ -1,5 +1,5 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine net 0.1.2 v0.1.2 e84d576dfff6baa6843dadb9d2b7f36ff6c579ed https://github.com/MealKit-Engine/MealKit-Net
+source engine net 0.1.2 v0.1.2 e84d576dfff6baa6843dadb9d2b7f36ff6c579ed https://github.com/MealKit-Engine/module-net
 4d9f56101d765adfadca780c82d390939516dfb7eac861d782d75883039f0fdb  include/mealkit/net/Conditions.h
 47edca37025e430c9ca5326a8979f6470a4c5f190daf878acebb9255e3f887d7  include/mealkit/net/Lockstep.h
 5ebdc31ae3d40f0b3ded3ce98fd3ddc0991488940697d092f63eb26956d71e1d  include/mealkit/net/Rooms.h
