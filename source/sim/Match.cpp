@@ -10,8 +10,8 @@ namespace {
 
 using mealkit::sim::FlowEvent;
 
-std::array<mealkit::sim::MatchPlayer, mealkit::net::kMaxPlayers> matchPlayers(const World& world) {
-    std::array<mealkit::sim::MatchPlayer, mealkit::net::kMaxPlayers> players{};
+std::array<mealkit::sim::MatchPlayer, mealkit::session::kMaxPlayers> matchPlayers(const World& world) {
+    std::array<mealkit::sim::MatchPlayer, mealkit::session::kMaxPlayers> players{};
     for (u32 i = 0; i < world.state.playerCount; ++i) {
         players[i].present = world.state.slots[i].connected;
         players[i].alive = true;
@@ -86,7 +86,7 @@ void checkRoundEnd(World& world) {
         }
         const u32 place = p.outOrder == 0 ? 1u : alive + (s.outCount - p.outOrder) + 1u;
         p.lastPlace = place;
-        p.score += world.tuning.placementPoints[(place - 1) % mealkit::net::kMaxPlayers];
+        p.score += world.tuning.placementPoints[(place - 1) % mealkit::session::kMaxPlayers];
     }
     if (last != kNoSlot) {
         s.slots[last].it = false;

@@ -56,7 +56,7 @@ MEALKIT_VIEWMODEL(HudVm) {
     MEALKIT_FIELD(std::string, chatDraft, {}, "보낼 채팅 (글자 입력)");
 };
 
-using SeatNames = std::array<std::string, mealkit::net::kMaxPlayers>;
+using SeatNames = std::array<std::string, mealkit::session::kMaxPlayers>;
 
 // State → HUD (every frame). local = my player slot
 void fillHud(const World& world, u32 local, const SeatNames& names, const PlayerColors& colors, const mealkit::loc::Strings& strings,

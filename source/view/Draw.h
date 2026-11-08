@@ -28,17 +28,17 @@ void drawScene(const mealkit::scene::Scene& scene, mealkit::asset::ModelCache& m
 // Character animation state kept between frames (skinned model + tables/animation.table)
 struct CharacterView {
     mealkit::asset::AnimStates states; // loaded by GameSession, reloaded when the file changes
-    std::array<mealkit::asset::AnimInstance, mealkit::net::kMaxPlayers> anims{};
-    std::array<mealkit::asset::AnimParams, mealkit::net::kMaxPlayers> params{};
-    std::array<f32, mealkit::net::kMaxPlayers> yaw{};
-    std::array<bool, mealkit::net::kMaxPlayers> seen{};
+    std::array<mealkit::asset::AnimInstance, mealkit::session::kMaxPlayers> anims{};
+    std::array<mealkit::asset::AnimParams, mealkit::session::kMaxPlayers> params{};
+    std::array<f32, mealkit::session::kMaxPlayers> yaw{};
+    std::array<bool, mealkit::session::kMaxPlayers> seen{};
     mealkit::f64 time = -1.0; // view time of the last update
     std::vector<std::pair<std::string, Vec3>> events; // animation events (footsteps) for ctx.feedback
 };
 
 // Interpolated character centers by player slot (has = the slot has a character)
-void pawnPositions(const WorldState& previous, const WorldState& current, f32 alpha, std::array<Vec3, mealkit::net::kMaxPlayers>& at,
-                   std::array<bool, mealkit::net::kMaxPlayers>& has);
+void pawnPositions(const WorldState& previous, const WorldState& current, f32 alpha, std::array<Vec3, mealkit::session::kMaxPlayers>& at,
+                   std::array<bool, mealkit::session::kMaxPlayers>& has);
 // Hide spots (from World::hideSpots, with juice wobble) and loose props (interpolated)
 void drawHideSpots(const World& world, const ViewTuning& look, const Juice& juice, const Vec3& eye, mealkit::asset::ModelCache& models,
                    mealkit::render::DrawList& out);
@@ -48,8 +48,8 @@ void drawItems(const WorldState& current, const ViewTuning& look, mealkit::f64 v
 void drawProps(const WorldState& previous, const WorldState& current, f32 alpha, mealkit::asset::ModelCache& models,
                mealkit::render::DrawList& out);
 // Characters (with juice's squash, lean and flash) and the bomb. Hidden runners are drawn only for their own player (local)
-void drawWorld(const WorldState& current, const std::array<Vec3, mealkit::net::kMaxPlayers>& at,
-               const std::array<bool, mealkit::net::kMaxPlayers>& has, u32 local, const ViewTuning& look, const Juice& juice,
+void drawWorld(const WorldState& current, const std::array<Vec3, mealkit::session::kMaxPlayers>& at,
+               const std::array<bool, mealkit::session::kMaxPlayers>& has, u32 local, const ViewTuning& look, const Juice& juice,
                CharacterView& chars, mealkit::f64 viewTime, mealkit::asset::ModelCache& models, mealkit::render::DrawList& out);
 
 } // namespace fusetag

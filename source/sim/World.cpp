@@ -90,15 +90,15 @@ void World::reset(u64 seed, u32 humans, const Tuning& tuningValue, const mealkit
     nav = mealkit::sim::bakeNavGrid(physics, arenaMin, arenaMax, tuning.nav); // only static scene bodies exist now
     createProps(*this, scene);
     createCrates(*this, scene);
-    state.traps.init(mealkit::net::kMaxPlayers * 4); // a few snares per player at most (older ones are replaced)
-    state.humanCount = std::min(humans, mealkit::net::kMaxPlayers);
-    state.playerCount = std::max(state.humanCount, std::min(tuning.botFill, mealkit::net::kMaxPlayers));
+    state.traps.init(mealkit::session::kMaxPlayers * 4); // a few snares per player at most (older ones are replaced)
+    state.humanCount = std::min(humans, mealkit::session::kMaxPlayers);
+    state.playerCount = std::max(state.humanCount, std::min(tuning.botFill, mealkit::session::kMaxPlayers));
     for (u32 i = 0; i < state.playerCount; ++i) {
         state.slots[i].connected = true;
         state.slots[i].bot = i >= state.humanCount;
     }
     state.rng = mealkit::Pcg32(seed ^ 0x9E3779B97F4A7C15ull, 11); // const-ok: stream constants
-    state.pawns.init(mealkit::net::kMaxPlayers * 2); // a removed character and its replacement can coexist within one tick
+    state.pawns.init(mealkit::session::kMaxPlayers * 2); // a removed character and its replacement can coexist within one tick
     resetRound(*this);
     respawnPawns(*this);
     state.pawns.endTick();
@@ -113,9 +113,9 @@ void World::setTuning(const Tuning& value) {
     physics.setGravity(tuning.gravity);
 }
 
-void World::step(const mealkit::net::TickInputs& tickInputs) {
+void World::step(const mealkit::session::TickInputs& tickInputs) {
     MEALKIT_ZONE("World::step");
-    for (u32 i = 0; i < mealkit::net::kMaxPlayers; ++i) inputs[i] = GameInput{};
+    for (u32 i = 0; i < mealkit::session::kMaxPlayers; ++i) inputs[i] = GameInput{};
     for (u32 i = 0; i < state.humanCount; ++i) std::memcpy(&inputs[i], tickInputs.players[i].bytes, sizeof(GameInput));
     events.clear();
 

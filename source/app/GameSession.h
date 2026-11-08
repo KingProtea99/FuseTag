@@ -40,7 +40,7 @@ public:
     void buildFrame(mealkit::game::GameContext& ctx, mealkit::f64 now, mealkit::render::FrameParams& frame,
                     mealkit::render::DrawList& out) override;
     void debugUi(mealkit::game::GameContext& ctx) override;
-    void lobby(mealkit::net::LockstepSession& session, const mealkit::game::PlayOptions& options,
+    void lobby(mealkit::session::Session& session, const mealkit::game::PlayOptions& options,
                const std::string& userFolder) override;
 
 private:
@@ -63,8 +63,8 @@ private:
     WorldState m_frozenPrevious, m_frozenCurrent;           // the picture held during hitstop
     mealkit::f32 m_frozenAlpha = 0.0f;
     bool m_frozen = false;
-    std::array<mealkit::Vec3, mealkit::net::kMaxPlayers> m_pawnAt{}; // interpolated character centers this frame
-    std::array<bool, mealkit::net::kMaxPlayers> m_pawnHas{};
+    std::array<mealkit::Vec3, mealkit::session::kMaxPlayers> m_pawnAt{}; // interpolated character centers this frame
+    std::array<bool, mealkit::session::kMaxPlayers> m_pawnHas{};
     mealkit::u32 m_hud = 0;
     HudVm m_hudVm;
     SaveData m_save; // saves/progress.save

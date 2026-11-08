@@ -140,7 +140,7 @@ MEALKIT_STRUCT(JuiceTuning) {
     MEALKIT_FIELD(f32, dangerAberration, 0.006f, "퓨즈 위험 때 맥박마다 색수차");
 };
 
-using PlayerColors = std::array<Color, mealkit::net::kMaxPlayers>;
+using PlayerColors = std::array<Color, mealkit::session::kMaxPlayers>;
 
 MEALKIT_STRUCT(ViewTuning) {
     MEALKIT_FIELD(CameraTuning, camera, {}, "카메라");

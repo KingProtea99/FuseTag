@@ -51,6 +51,6 @@ void checkRoundEnd(World& world);      // one player left: placement points and 
 bool matchPlaying(const World& world); // in play (input only then)
 
 // Commands.cpp
-void applyCommands(World& world, const mealkit::net::TickInputs& inputs); // confirmed commands (at the start of step)
+void applyCommands(World& world, const mealkit::session::TickInputs& inputs); // confirmed commands (at the start of step)
 
 } // namespace fusetag

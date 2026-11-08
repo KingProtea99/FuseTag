@@ -17,12 +17,12 @@ void Headless::startWorld(World& world, const game::MatchInfo& match, const Tuni
 }
 
 // The bot AI in the simulation drives this player (sim/Bots.cpp), so --bot plays like the bots in empty seats
-net::PlayerInput Headless::botInput(u32 tick, u8 player) {
+session::PlayerInput Headless::botInput(u32 tick, u8 player) {
     (void)tick;
     (void)player;
     GameInput g;
     g.buttons = kButtonAuto;
-    net::PlayerInput pi;
+    session::PlayerInput pi;
     std::memcpy(pi.bytes, &g, sizeof(g));
     return pi;
 }

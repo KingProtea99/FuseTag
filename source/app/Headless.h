@@ -17,7 +17,7 @@ struct Headless {
     static void startWorld(World& world, const mealkit::game::MatchInfo& match, const Tuning& tuning,
                            const mealkit::scene::Scene& flatScene, mealkit::asset::ModelCache& models, u32 physicsThreads);
     // Bot input (--bot, scenario tests): asks the simulation's bot AI to drive the player (kButtonAuto)
-    static mealkit::net::PlayerInput botInput(u32 tick, u8 player);
+    static mealkit::session::PlayerInput botInput(u32 tick, u8 player);
     // Default port/player count from project settings
     static void defaults(mealkit::game::MatchOptions& options, const ProjectSettings& project);
 };

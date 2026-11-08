@@ -2,7 +2,7 @@
 
 #include "mealkit/core/Math.h"
 #include "mealkit/core/Reflect.h"
-#include "mealkit/net/Lockstep.h"
+#include "mealkit/session/Session.h"
 #include "mealkit/sim/Movement.h"
 #include "mealkit/sim/NavGrid.h"
 
@@ -14,7 +14,7 @@
 namespace fusetag {
 
 // Round points by placement: [0] = last one standing, [1] = second, ...
-using PlacementPoints = std::array<mealkit::u32, mealkit::net::kMaxPlayers>;
+using PlacementPoints = std::array<mealkit::u32, mealkit::session::kMaxPlayers>;
 
 MEALKIT_STRUCT(Tuning) {
     // Match (engine mealkit/sim/MatchFlow.h). A round ends when one player is left, so there is no time limit

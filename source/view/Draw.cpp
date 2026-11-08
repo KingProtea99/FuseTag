@@ -71,11 +71,11 @@ void drawScene(const scene::Scene& scene, asset::ModelCache& models, const Vec3&
     }
 }
 
-void pawnPositions(const WorldState& previous, const WorldState& current, f32 alpha, std::array<Vec3, net::kMaxPlayers>& at,
-                   std::array<bool, net::kMaxPlayers>& has) {
+void pawnPositions(const WorldState& previous, const WorldState& current, f32 alpha, std::array<Vec3, session::kMaxPlayers>& at,
+                   std::array<bool, session::kMaxPlayers>& has) {
     has = {};
     for (auto [id, pawn] : current.pawns) {
-        if (pawn.player >= net::kMaxPlayers) continue;
+        if (pawn.player >= session::kMaxPlayers) continue;
         const Pawn* before = previous.pawns.get(id); // nullptr when it appeared this tick
         at[pawn.player] = lerp(before ? before->position : pawn.position, pawn.position, alpha);
         has[pawn.player] = true;
@@ -140,7 +140,7 @@ void drawProps(const WorldState& previous, const WorldState& current, f32 alpha,
     }
 }
 
-void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayers>& at, const std::array<bool, net::kMaxPlayers>& has,
+void drawWorld(const WorldState& current, const std::array<Vec3, session::kMaxPlayers>& at, const std::array<bool, session::kMaxPlayers>& has,
                u32 local, const ViewTuning& look, const Juice& juice, CharacterView& chars, f64 viewTime, asset::ModelCache& models,
                render::DrawList& out) {
     const render::MeshId box = models.boxMesh();
@@ -152,7 +152,7 @@ void drawWorld(const WorldState& current, const std::array<Vec3, net::kMaxPlayer
     chars.time = viewTime;
     chars.events.clear();
     thread_local std::vector<std::string> fired;
-    for (u32 slot = 0; slot < net::kMaxPlayers; ++slot) {
+    for (u32 slot = 0; slot < session::kMaxPlayers; ++slot) {
         if (!has[slot]) continue;
         const PlayerSlot& p = current.slots[slot];
         const Color color = p.out ? look.outColor : look.playerColors[slot % look.playerColors.size()];

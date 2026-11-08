@@ -27,13 +27,13 @@ struct FlowGame {
     mealkit::f32 chatShowSeconds = 8.0f;          // new chat lines stay on the HUD this long during a match
     // Lobby choice (match start data): option string keys, the same keys as the select box in ui/lobby.ui. Empty = no choice (hidden)
     std::span<const char* const> choices;
-    mealkit::u32 (*memberChoice)(const mealkit::net::LobbyMember& member) = nullptr; // another player's choice (from their loadout)
+    mealkit::u32 (*memberChoice)(const mealkit::session::LobbyMember& member) = nullptr; // another player's choice (from their loadout)
     // The match (only while the simulation runs)
     bool inMatch = false;
     bool results = false; // the simulation reached its results phase (same tick for everyone)
     mealkit::u32 playerCount = 0;
-    std::array<mealkit::u32, mealkit::net::kMaxPlayers> score{}; // results rows: one number per player
-    std::array<bool, mealkit::net::kMaxPlayers> bots{};          // seats played by bots (named "Bot N")
+    std::array<mealkit::u32, mealkit::session::kMaxPlayers> score{}; // results rows: one number per player
+    std::array<bool, mealkit::session::kMaxPlayers> bots{};          // seats played by bots (named "Bot N")
     bool lowestFirst = false;                                    // rank by the lowest score (falls) instead of the highest
 };
 
@@ -53,7 +53,7 @@ public:
     bool takeSaveChanged();          // the name/body changed (write the save)
 
     // Name of a player index (name set in the lobby, P1.. if none)
-    static std::string playerName(const mealkit::net::LockstepSession& session, mealkit::u32 slot);
+    static std::string playerName(const mealkit::session::Session& session, mealkit::u32 slot);
     // Same, or "Bot N" for a seat a bot plays
     static std::string seatName(mealkit::game::GameContext& ctx, const FlowGame& game, mealkit::u32 slot);
 
@@ -64,7 +64,7 @@ private:
     void updateJoin(mealkit::game::GameContext& ctx);
     void updateLobby(mealkit::game::GameContext& ctx, const FlowGame& game, SaveData& save);
     void updateMatch(mealkit::game::GameContext& ctx, const FlowGame& game, HudVm& hud, mealkit::ui::ScreenId hudScreen);
-    void fillChat(const mealkit::net::LockstepSession& session, ChatLineVm* lines, mealkit::u32& count, mealkit::u32 capacity);
+    void fillChat(const mealkit::session::Session& session, ChatLineVm* lines, mealkit::u32& count, mealkit::u32 capacity);
     void fillResults(mealkit::game::GameContext& ctx, const FlowGame& game);
     std::string endText(mealkit::game::GameContext& ctx) const;
 

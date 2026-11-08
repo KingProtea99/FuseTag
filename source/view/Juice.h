@@ -48,8 +48,8 @@ public:
     void reset();
     void onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 now);
     // Every frame. positions = interpolated character centers (valid where has[slot]); now = view clock (frozen in hitstop)
-    void update(const World& world, const std::array<Vec3, mealkit::net::kMaxPlayers>& positions,
-                const std::array<bool, mealkit::net::kMaxPlayers>& has, f32 dt, f64 now, const JuiceTuning& t);
+    void update(const World& world, const std::array<Vec3, mealkit::session::kMaxPlayers>& positions,
+                const std::array<bool, mealkit::session::kMaxPlayers>& has, f32 dt, f64 now, const JuiceTuning& t);
 
     PawnLook look(u32 slot) const;
     Vec3 velocity(u32 slot) const { return slot < m_pawns.size() ? m_pawns[slot].lastVelocity : Vec3{}; } // from interpolated motion
@@ -100,9 +100,9 @@ private:
     };
     void addLight(Vec3 at, f32 range, Vec3 color, f32 seconds, f64 now);
 
-    std::array<PawnFx, mealkit::net::kMaxPlayers> m_pawns{};
-    std::array<Vec3, mealkit::net::kMaxPlayers> m_positions{};
-    std::array<bool, mealkit::net::kMaxPlayers> m_has{};
+    std::array<PawnFx, mealkit::session::kMaxPlayers> m_pawns{};
+    std::array<Vec3, mealkit::session::kMaxPlayers> m_positions{};
+    std::array<bool, mealkit::session::kMaxPlayers> m_has{};
     std::vector<Light> m_lights;
     JuiceTuning m_t;
     f64 m_now = 0.0;

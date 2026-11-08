@@ -130,7 +130,7 @@ void Juice::onEvent(const GameEvent& e, const World& world, u8 localPlayer, f64 
     }
 }
 
-void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>& positions, const std::array<bool, net::kMaxPlayers>& has,
+void Juice::update(const World& world, const std::array<Vec3, session::kMaxPlayers>& positions, const std::array<bool, session::kMaxPlayers>& has,
                    f32 dt, f64 now, const JuiceTuning& t) {
     m_t = t;
     m_now = now;
@@ -157,7 +157,7 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
         heartbeat = m_localIt && m_fuseLeft < t.bombFlashBelow;
     }
 
-    for (u32 slot = 0; slot < net::kMaxPlayers; ++slot) {
+    for (u32 slot = 0; slot < session::kMaxPlayers; ++slot) {
         PawnFx& fx = m_pawns[slot];
         if (!has[slot]) {
             fx = PawnFx{};
@@ -213,7 +213,7 @@ void Juice::update(const World& world, const std::array<Vec3, net::kMaxPlayers>&
 
     // fov: wider with my speed, plus kicks
     f32 mySpeed = 0.0f;
-    if (m_local < net::kMaxPlayers && has[m_local]) {
+    if (m_local < session::kMaxPlayers && has[m_local]) {
         const Vec3 v = m_pawns[m_local].lastVelocity;
         mySpeed = std::sqrt(v.x * v.x + v.z * v.z);
     }
