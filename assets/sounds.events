@@ -1,4 +1,4 @@
-# MealKit audio events. Edit them in MealKit Audio or by hand: "event|mixbus|snapshot|music <name>", then "key value" lines.
+# MealKit audio events. Edit them in MkAudio or by hand: "event|mixbus|snapshot|music <name>", then "key value" lines.
 # Clips are made by art/sounds/make_sounds.py.
 @format audio-events 2
 
