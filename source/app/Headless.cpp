@@ -13,7 +13,9 @@ void Headless::startWorld(World& world, const game::MatchInfo& match, const Tuni
     // Tables are read from files every match (per-match loading, engine docs/CODING_MODEL.md "Asset references and loading")
     sim::Table<ItemKind> items;
     data::loadTable(items);
-    world.reset(match.seed, match.playerCount, tuning, items, flatScene, models, reflect::tickRate(), physicsThreads);
+    sim::Table<Rule> rules;
+    data::loadTable(rules);
+    world.reset(match.seed, match.playerCount, tuning, items, rules, flatScene, models, reflect::tickRate(), physicsThreads);
 }
 
 // The bot AI in the simulation drives this player (sim/Bots.cpp), so --bot plays like the bots in empty seats

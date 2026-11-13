@@ -124,6 +124,7 @@ MEALKIT_STRUCT(PlayerSlot) {
     MEALKIT_FIELD(TickTimer, vanish, {}, "투명");
     MEALKIT_FIELD(TickTimer, scope, {}, "투시");
     MEALKIT_FIELD(u32, itemsUsed, 0, "이번 매치에 쓴 아이템");
+    MEALKIT_FIELD(objects::Effects, effects, {}, "규칙 효과 (규칙 구역·타이머)");
     // Bot brain (bots and players with kButtonAuto)
     MEALKIT_FIELD(TickTimer, botThink, {}, "봇 다음 판단");
     MEALKIT_FIELD(bool, botRepath, false, "봇 길찾기 대기");
@@ -169,6 +170,8 @@ inline constexpr u32 kMaxEventsPerTick = 64;
 // Match phase (engine mealkit/sim/MatchFlow.h, driven by sim/Match.cpp). The screen flow opens the results screen at Results
 using MatchPhase = mealkit::sim::FlowPhase;
 
+inline constexpr u32 kMaxRuleZones = 16; // RuleZone objects per scene (more are ignored with a warning)
+
 MEALKIT_STRUCT(WorldState) {
     MEALKIT_FIELD(u32, tick, 0, "틱");
     MEALKIT_FIELD(mealkit::sim::MatchFlow, flow, {}, "매치 흐름 (단계, 라운드)");
@@ -190,6 +193,7 @@ MEALKIT_STRUCT(WorldState) {
     MEALKIT_FIELD(u32, founds, 0, "이번 매치 찾아낸 수");
     MEALKIT_FIELD(u32, shoves, 0, "이번 매치 밀치기 수 (누군가 밀린 것만)");
     MEALKIT_FIELD(mealkit::Pcg32, rng, {}, "난수 (첫 술래, 봇)");
+    MEALKIT_ARRAY(objects::Trigger, kMaxRuleZones, ruleZones, "규칙 구역 (안에 있는 플레이어 슬롯, World::zoneRules 순서)");
 };
 
 // The whole simulation. sim/ system functions (Systems.h) take only this (World&).
@@ -199,7 +203,8 @@ struct World {
     World& operator=(const World&) = delete;
 
     // humans = people in the match (input senders); bots fill up to tuning.botFill. physicsThreads = 0 matches the core count
-    void reset(u64 seed, u32 humans, const Tuning& tuning, const mealkit::sim::Table<ItemKind>& items, const mealkit::scene::Scene& scene,
+    void reset(u64 seed, u32 humans, const Tuning& tuning, const mealkit::sim::Table<ItemKind>& items,
+               const mealkit::sim::Table<Rule>& ruleRows, const mealkit::scene::Scene& scene,
                mealkit::asset::ModelCache& models, u32 tickRate, u32 physicsThreads = 0);
     // Changes tuning mid-match (editor solo play only)
     void setTuning(const Tuning& value);
@@ -220,6 +225,13 @@ struct World {
     Tuning tuning;
     mealkit::sim::MatchRules rules;    // from tuning (sim/Match.cpp matchRules)
     mealkit::sim::Table<ItemKind> items; // tables/items.table (content hash)
+    mealkit::sim::Table<Rule> ruleRows;  // tables/rules.table (content hash)
+    std::vector<u32> zoneRules;          // rule row of state.ruleZones[i] (RuleZone objects in scene order)
+    struct RuleClock {
+        objects::Timer timer;
+        u32 rule = objects::kNoRule;
+    };
+    std::vector<RuleClock> ruleTimers; // RuleTimer objects in scene order
     mealkit::sim::NavGrid nav;         // baked from the static scene at reset, same on every peer (not state)
     mealkit::sim::NavSearch navSearch; // A* scratch memory (not state)
 

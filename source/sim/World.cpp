@@ -53,6 +53,33 @@ void loadScene(World& world, const scene::Scene& scene, mealkit::asset::ModelCac
         } else if (e.is<HideSpot>()) {
             const scene::Bounds b = scene::areaBounds(e);
             world.hideSpots.push_back({b.min, b.max, scene::readObject<HideSpot>(e).kind});
+        } else if (e.is<RuleZone>()) {
+            const RuleZone zone = scene::readObject<RuleZone>(e);
+            const u32 row = world.ruleRows.find(zone.rule.id);
+            if (row == mealkit::kNoRow) {
+                MEALKIT_WARN("RuleZone '%s': no row '%s' in tables/rules.table", e.name.c_str(), zone.rule.id.c_str());
+            } else if (world.zoneRules.size() >= kMaxRuleZones) {
+                MEALKIT_WARN("RuleZone '%s' ignored: more than %u rule zones", e.name.c_str(), kMaxRuleZones);
+            } else {
+                const scene::Bounds b = scene::areaBounds(e);
+                objects::Trigger& t = world.state.ruleZones[world.zoneRules.size()];
+                t.center = (b.min + b.max) * 0.5f;    // const-ok: midpoint
+                t.halfSize = (b.max - b.min) * 0.5f; // const-ok: half
+                world.zoneRules.push_back(row);
+            }
+        } else if (e.is<RuleTimer>()) {
+            const RuleTimer clock = scene::readObject<RuleTimer>(e);
+            const u32 row = world.ruleRows.find(clock.rule.id);
+            if (row == mealkit::kNoRow) {
+                MEALKIT_WARN("RuleTimer '%s': no row '%s' in tables/rules.table", e.name.c_str(), clock.rule.id.c_str());
+            } else {
+                World::RuleClock c;
+                c.timer.period = clock.period;
+                c.timer.onTicks = clock.onTime;
+                c.timer.startTick = clock.start;
+                c.rule = row;
+                world.ruleTimers.push_back(c);
+            }
         } else if (e.is<MatchArea>() && !arena) {
             const scene::Bounds b = scene::areaBounds(e);
             world.arenaMin = b.min;
@@ -70,18 +97,22 @@ void loadScene(World& world, const scene::Scene& scene, mealkit::asset::ModelCac
 
 } // namespace
 
-void World::reset(u64 seed, u32 humans, const Tuning& tuningValue, const mealkit::sim::Table<ItemKind>& itemTable, const scene::Scene& scene,
+void World::reset(u64 seed, u32 humans, const Tuning& tuningValue, const mealkit::sim::Table<ItemKind>& itemTable,
+                  const mealkit::sim::Table<Rule>& ruleTable, const scene::Scene& scene,
                   mealkit::asset::ModelCache& models, u32 tickRateValue, u32 physicsThreads) {
     physics.init(4096, physicsThreads);
     tickRate = tickRateValue ? tickRateValue : 30u;
     tickDt = 1.0f / static_cast<f32>(tickRate);
     tuning = tuningValue;
     items = itemTable;
+    ruleRows = ruleTable;
     rules = matchRules(tuning);
     physics.setGravity(tuning.gravity);
     physics.setContactEvents(tuning.impactSpeed, tuning.impactsPerTick);
     spawns.clear();
     hideSpots.clear();
+    zoneRules.clear();
+    ruleTimers.clear();
     state = WorldState{};
     events.clear();
 
@@ -131,6 +162,7 @@ void World::step(const mealkit::session::TickInputs& tickInputs) {
     senseProps(*this);
     shovePlayers(*this);
     updateItems(*this);
+    runRules(*this);
     updateHiding(*this);
     tagPlayers(*this);
     burnFuse(*this);

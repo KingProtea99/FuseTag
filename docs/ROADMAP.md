@@ -172,7 +172,7 @@ Goal: replace capsules and boxes with the final look. Decided before maps so all
 
 - [ ] Layout: a loop of galleries around a central atrium, side corridors, two floors joined by stairs; sightlines broken by display cases. Graybox first, play with bots, then art.
 - [ ] Hide spots: lockers (staff rooms), curtains, large display crates.
-- [ ] **Blackout gimmick** (`Blackout` scene object: interval, duration): sim decides the timing (event `BlackoutStart`/`End`); view drops scene lights and exposure, emergency lights stay as red point lights; characters keep a faint rim so nearby players are silhouettes; power-down and power-up sounds with lights flickering back (staggered).
+- [ ] **Blackout gimmick** (a `RuleTimer` with a `rules.table` timer row; add an event effect to `RuleEffect` that sends `BlackoutStart`/`End`, engine DECISIONS 2026-11-13 "Rule rows"): sim decides the timing; view drops scene lights and exposure, emergency lights stay as red point lights; characters keep a faint rim so nearby players are silhouettes; power-down and power-up sounds with lights flickering back (staggered).
 - [ ] Atmosphere: moonlight through windows (sun with cool LUT), dust motes, glowing exhibit cases (emissive), polished floor reflections from probes.
 - [ ] Lobby: map choice by host (`FlowGame` choices), map preview image.
 - [ ] Save records: matches, wins, best survival time.
@@ -180,7 +180,7 @@ Goal: replace capsules and boxes with the final look. Decided before maps so all
 ## M7. Map 2: Snowed-in village
 
 - [ ] Layout: a main street with houses, alleys between them, a frozen pond in the square.
-- [ ] **Ice**: `IcePatch` areas switch the movement tuning (low friction, slow turning); view: sliding pose, stretched along velocity, spray of ice shards when braking.
+- [ ] **Ice**: `RuleZone` areas with an inside row and a new movement-tuning effect (low friction, slow turning; engine DECISIONS 2026-11-13 "Rule rows"); view: sliding pose, stretched along velocity, spray of ice shards when braking.
 - [ ] Snow piles to hide in (pop-out burst of snow), footstep puffs, falling snow particles near the camera only.
 - [ ] Warm windows (emissive + point lights) against a cold blue LUT.
 

@@ -1,0 +1,28 @@
+# Rule rows (tables/rules.table) in the cage arena with a mud RuleZone over the west half and a cold snap RuleTimer
+# (on 10~15 s, then every 20 s). Mud (Inside, speed x0.6) holds while a player's feet are in the zone and goes when they leave;
+# the cold snap (Timer, speed x0.8) reaches everyone in the round while the timer is on and ends with it.
+seed 7
+scene scenes/tests/rules.scene
+# 5 s: slots 0, 1, 2, 4, 5 in the mud
+tick 5s ruleZones[0].inside == 55
+tick 5s slots[0].effects.list[0].rule == 0
+tick 5s slots[0].effects.list[0].amount == 0.6
+tick 5s slots[3].effects.list[0].rule == 4294967295
+# 9 s: slots 0 and 1 left the mud, slot 2 is still in it
+tick 9s ruleZones[0].inside == 20
+tick 9s slots[0].effects.list[0].rule == 4294967295
+tick 9s slots[2].effects.list[0].rule == 0
+# 12 s: nobody in the mud, the cold snap is on for everyone
+tick 12s ruleZones[0].inside == 0
+tick 12s slots[0].effects.list[0].rule == 1
+tick 12s slots[0].effects.list[0].amount == 0.8
+tick 12s slots[5].effects.list[0].rule == 1
+# 16 s: the cold snap ended; slot 0 is back in the mud, slot 1 has nothing
+tick 16s ruleZones[0].inside == 45
+tick 16s slots[0].effects.list[0].rule == 0
+tick 16s slots[1].effects.list[0].rule == 4294967295
+tick 16s slots[1].effects.list[1].rule == 4294967295
+# 31 s: the second cold snap; slot 2 has both (mud first, then the snap)
+tick 31s slots[2].effects.list[0].rule == 0
+tick 31s slots[2].effects.list[1].rule == 1
+tick 31s slots[1].effects.list[0].rule == 1

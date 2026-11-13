@@ -29,6 +29,8 @@ void shovePlayers(World& world);       // shove button: pushes players and props
 // Items.cpp
 void createCrates(World& world, const mealkit::scene::Scene& scene); // ItemCrate objects (World::reset)
 void updateItems(World& world);   // crates refill and get picked up, items are used, traps catch people
+void runRules(World& world);      // rule zones and timers → players' active effects (tables/rules.table, sim/Rules.cpp)
+void resetRules(World& world);    // round start: effects cleared, zones empty again
 void shoveFrom(World& world, u32 slot, f32 scale); // one shove (Props.cpp; BigShove uses scale > 1)
 
 // Tag.cpp

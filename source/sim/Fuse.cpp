@@ -55,6 +55,7 @@ void resetRound(World& world) {
     }
     s.outCount = 0;
     s.itSlot = kNoSlot;
+    resetRules(world);
 }
 
 void startRound(World& world) {

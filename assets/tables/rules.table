@@ -1,0 +1,14 @@
+# MealKit table (Rule). Edit it in the editor's [Tables] panel or import a CSV there.
+@format table 1
+
+row mud
+when Inside
+effect Speed
+amount 0.6
+duration 0
+
+row cold_snap
+when Timer
+effect Speed
+amount 0.8
+duration 0
