@@ -6,6 +6,7 @@
 
 #include "mkui/Ui.h"
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,9 @@ namespace render {
 class Renderer;
 struct Viewport;
 } // namespace render
+namespace live {
+class Server;
+} // namespace live
 namespace loc {
 class Strings;
 }
@@ -107,6 +111,12 @@ public:
     void moveFocus(ScreenId screen, int direction); // editor: one ui.* move (0 up, 1 down, 2 left, 3 right)
     void setFocusVisible(bool always); // preview: always show the focus indicator
     u32 quadCount() const;             // rectangle count of the last render
+    // Editor preview: string table text lengthened by about 40%, accented and bracketed ("[Sett~ ~~]" style) to find text that won't fit
+    // translations (pseudo-localization). Rereads the open screens
+    void setPseudoText(bool on);
+    bool pseudoText() const;
+    std::vector<ScreenId> screens() const;          // open screens (editor: the game's screens while playing)
+    reflect::View viewModel(ScreenId screen) const; // the view model bound to a screen (empty if none)
     // For widget interaction tests: as if pressed, by node name (automated tests/preview)
     bool press(ScreenId screen, const std::string& nodeName);
     // Finds and presses a widget with this name from the top of the open screens (automated tests --ui-press)
@@ -120,5 +130,10 @@ private:
     struct Impl;
     Impl* m;
 };
+
+// Live connection ui/ (MkUI Designer takes a running game's real view-model values): GET ui/screens lists open screens with the
+// bound view model type, GET ui/values?screen=ui/menu.ui gives that screen's view model as "path value" pairs (reflect::toText).
+// system() may return nullptr (editor not playing: 503)
+void addLiveService(live::Server& server, std::function<System*()> system);
 
 } // namespace mealkit::ui
