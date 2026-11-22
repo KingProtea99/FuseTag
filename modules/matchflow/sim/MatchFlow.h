@@ -7,11 +7,16 @@
 #include <array>
 #include <span>
 
-// Match flow (docs/CODING_MODEL.md "Match flow"): waiting → countdown → playing → round end → (countdown ...) → results.
+// Match flow module (docs/index.md): waiting → countdown → playing → round end → (countdown ...) → results.
 // MatchFlow is simulation state (a field of the game's WorldState, so it's hashed and snapshotted), MatchRules come from tuning.
 // advanceMatch() is called once per tick and returns the transition made on that tick; the game's sim/Match.cpp switches on it
 // and calls its own functions (onRoundStart, ...) directly. No callbacks. Transitions depend only on tick numbers and the players passed in.
-namespace mealkit::sim {
+namespace matchflow {
+
+using mealkit::u32;
+using mealkit::u8;
+using mealkit::sim::TickTimer;
+namespace session = mealkit::session;
 
 MEALKIT_ENUM(FlowPhase, u8, Waiting, Countdown, Playing, RoundEnd, Results);
 
@@ -165,4 +170,4 @@ inline FlowEvent startMatchFlow(MatchFlow& flow, const MatchRules& rules, u32 ti
     return advanceMatch(flow, rules, tick, players);
 }
 
-} // namespace mealkit::sim
+} // namespace matchflow

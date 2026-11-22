@@ -17,7 +17,7 @@ namespace fusetag {
 using PlacementPoints = std::array<mealkit::u32, mealkit::session::kMaxPlayers>;
 
 MEALKIT_STRUCT(Tuning) {
-    // Match (engine mealkit/sim/MatchFlow.h). A round ends when one player is left, so there is no time limit
+    // Match (source module matchflow/sim/MatchFlow.h). A round ends when one player is left, so there is no time limit
     MEALKIT_FIELD(mealkit::Ticks, countdown, mealkit::Ticks::seconds(3.0f), "시작 카운트다운 (초, 0이면 없음)");
     MEALKIT_FIELD(mealkit::Ticks, roundEndDelay, mealkit::Ticks::seconds(4.0f), "라운드 결과를 보여 주는 시간 (초)");
     MEALKIT_FIELD(mealkit::u32, rounds, 3, "라운드 수 (모두 끝나면 점수 합계로 순위)");

@@ -46,7 +46,7 @@ void eliminate(World& world, u32 slot);
 mealkit::sim::MoveIntent botIntent(World& world, u32 slot, const Pawn& pawn, u32& pathBudget, bool& sprint);
 
 // Match.cpp
-mealkit::sim::MatchRules matchRules(const Tuning& tuning); // tuning → flow rules (World::reset, setTuning)
+matchflow::MatchRules matchRules(const Tuning& tuning); // tuning → flow rules (World::reset, setTuning)
 void startMatch(World& world);         // match start: waiting/countdown (World::reset)
 void updateMatch(World& world);        // phase changes (at the start of step, after commands)
 void checkRoundEnd(World& world);      // one player left: placement points and the round ends (after eliminations)

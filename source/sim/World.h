@@ -6,7 +6,7 @@
 #include "mealkit/session/Session.h"
 #include "mealkit/physics/PhysicsWorld.h"
 #include "mealkit/scene/Scene.h"
-#include "mealkit/sim/MatchFlow.h"
+#include "matchflow/sim/MatchFlow.h" // source module modules/matchflow
 #include "mealkit/sim/Movement.h"
 #include "mealkit/sim/NavGrid.h"
 #include "mealkit/sim/Pool.h"
@@ -167,14 +167,14 @@ inline GameEvent makeEvent(EventKind kind, u8 player, Vec3 position, f32 value, 
 }
 inline constexpr u32 kMaxEventsPerTick = 64;
 
-// Match phase (engine mealkit/sim/MatchFlow.h, driven by sim/Match.cpp). The screen flow opens the results screen at Results
-using MatchPhase = mealkit::sim::FlowPhase;
+// Match phase (matchflow/sim/MatchFlow.h, driven by sim/Match.cpp). The screen flow opens the results screen at Results
+using MatchPhase = matchflow::FlowPhase;
 
 inline constexpr u32 kMaxRuleZones = 16; // RuleZone objects per scene (more are ignored with a warning)
 
 MEALKIT_STRUCT(WorldState) {
     MEALKIT_FIELD(u32, tick, 0, "틱");
-    MEALKIT_FIELD(mealkit::sim::MatchFlow, flow, {}, "매치 흐름 (단계, 라운드)");
+    MEALKIT_FIELD(matchflow::MatchFlow, flow, {}, "매치 흐름 (단계, 라운드)");
     MEALKIT_FIELD(u32, playerCount, 0, "참가자 수 (사람 + 봇)");
     MEALKIT_FIELD(u32, humanCount, 0, "입력을 보내는 사람 수 (앞쪽 슬롯)");
     MEALKIT_ARRAY(PlayerSlot, mealkit::session::kMaxPlayers, slots, "플레이어 슬롯");
@@ -223,7 +223,7 @@ struct World {
     };
     std::vector<HideArea> hideSpots; // HideSpot objects in scene order
     Tuning tuning;
-    mealkit::sim::MatchRules rules;    // from tuning (sim/Match.cpp matchRules)
+    matchflow::MatchRules rules;    // from tuning (sim/Match.cpp matchRules)
     mealkit::sim::Table<ItemKind> items; // tables/items.table (content hash)
     mealkit::sim::Table<Rule> ruleRows;  // tables/rules.table (content hash)
     std::vector<u32> zoneRules;          // rule row of state.ruleZones[i] (RuleZone objects in scene order)
