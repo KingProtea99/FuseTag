@@ -1,0 +1,14 @@
+# Editor text for this game's declarations (scene kinds, field descriptions): "English source = Korean". Read by the editor (loadProjectStrings).
+Match area = 경기 영역
+Hiding spot = 숨는 곳
+Physics prop = 물리 물체
+Item crate = 아이템 상자
+Rule zone = 규칙 구역
+Rule timer = 규칙 타이머
+Shape = 모양
+Mass (kg) = 질량 (kg)
+Respawn time (s) = 다시 나타나는 시간 (초)
+Rule (rules.table row) = 규칙 (rules.table 행)
+Period (s, 0 = once) = 주기 (초, 0이면 한 번)
+On time (s) = 켜져 있는 시간 (초)
+First on (s from match start) = 처음 켜지는 때 (매치 시작부터 초)

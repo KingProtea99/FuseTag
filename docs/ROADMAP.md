@@ -1,6 +1,6 @@
 # FuseTag roadmap
 
-Order of work for the first shippable version. Rules are in `docs/DESIGN.md`; engine problems found on the way go in `docs/ENGINE_NOTES.md`.
+Order of work for the first shippable version. Rules are in `docs/DESIGN.md`; engine problems found on the way go in `docs/ENGINE_NOTES.md`. Only work an agent can build and check without a person is listed here: what needs real players, other PCs, minimum spec hardware or a clean PC is in `docs/ROADMAP_HUMAN.md`.
 
 ## How to work
 
@@ -204,10 +204,10 @@ Goal: replace capsules and boxes with the final look. Decided before maps so all
 
 ## M10. Ship
 
-- [ ] Balance pass with recorded bot matches (round length, fuse length, item weights) and real playtests.
-- [ ] Network: 8 players over the internet, `mp_test` with lag/jitter/loss, late join to spectator.
-- [ ] Performance: benchmark every map on minimum spec, trim particles/lights to budget.
-- [ ] `build.bat Export`, `check_layout.ps1`, run the exported build on a clean PC.
+- [ ] Balance pass with recorded bot matches (round length, fuse length, item weights).
+- [ ] Network: 8 players in `mp_test` with lag/jitter/loss, late join to spectator.
+- [ ] Performance: `--benchmark` every map on this machine, trim particles/lights to budget.
+- [ ] `build.bat Export`, `check_layout.ps1`, run the exported build here.
 - [ ] Store/readme text, screenshots and a short gameplay clip captured from the game.
 
 ---

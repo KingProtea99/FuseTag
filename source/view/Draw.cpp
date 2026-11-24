@@ -152,7 +152,6 @@ void drawWorld(const WorldState& current, const std::array<Vec3, session::kMaxPl
     const f32 dt = chars.time < 0.0 ? 0.0f : static_cast<f32>(std::clamp(viewTime - chars.time, 0.0, 0.1));
     chars.time = viewTime;
     chars.events.clear();
-    thread_local std::vector<std::string> fired;
     for (u32 slot = 0; slot < session::kMaxPlayers; ++slot) {
         if (!has[slot]) continue;
         const PlayerSlot& p = current.slots[slot];
@@ -192,24 +191,21 @@ void drawWorld(const WorldState& current, const std::array<Vec3, session::kMaxPl
         params.set("hiding", p.hidden);
         params.set("cheer", current.flow.phase == MatchPhase::RoundEnd && current.roundWinner == slot);
         if (juice.shoved(slot)) params.trigger("shove");
-        fired.clear();
-        asset::updateAnim(chars.states, set, figure->clips, chars.anims[slot], params, dt, &fired);
-        for (std::string& e : fired) chars.events.emplace_back(std::move(e), at[slot]);
-        thread_local std::vector<asset::JointPose> pose;
-        thread_local std::vector<asset::BoneMatrix> palette;
-        asset::animPose(chars.states, figure->skeleton, figure->clips, chars.anims[slot], pose);
-        asset::skinPalette(figure->skeleton, pose, palette);
+        chars.fired.clear();
+        asset::updateAnim(chars.states, set, figure->clips, chars.anims[slot], params, dt, &chars.fired);
+        for (std::string& e : chars.fired) chars.events.emplace_back(std::move(e), at[slot]);
+        asset::animPose(chars.states, figure->skeleton, figure->clips, chars.anims[slot], chars.pose);
+        asset::skinPalette(figure->skeleton, chars.pose, chars.palette);
         // The model faces glTF +Z, which the importer's z flip (glTF is right-handed) turns into -Z: turn it half way round
         const Quat facing = quatFromAxisAngle({0, 1, 0}, yaw + 3.14159265f);
         const Vec3 feet = at[slot] + l.offset - Vec3{0.0f, look.footOffset, 0.0f};
         out.addSkinned(figure->lods[0], {feet, color.value, normalize(facing * l.rotation), l.scale, render::instanceFlash(0, l.flash)},
-                       palette.data(), static_cast<u32>(palette.size()));
+                       chars.palette.data(), static_cast<u32>(chars.palette.size()));
     }
     // Afterimages: smaller, fading copies behind the one who passed the bomb on
-    static thread_local std::vector<Juice::Ghost> ghosts;
-    ghosts.clear();
-    juice.ghosts(ghosts);
-    for (const Juice::Ghost& g : ghosts) {
+    chars.ghosts.clear();
+    juice.ghosts(chars.ghosts);
+    for (const Juice::Ghost& g : chars.ghosts) {
         const Color c = look.playerColors[g.slot % look.playerColors.size()];
         const f32 k = 0.4f + 0.5f * g.fade; // const-ok: oldest is 40% size
         out.add(box, {g.position, c.value, Quat{}, look.pawnSize * k, render::instanceFlash(0, 0.5f * (1.0f - g.fade))});

@@ -34,6 +34,11 @@ struct CharacterView {
     std::array<bool, mealkit::session::kMaxPlayers> seen{};
     mealkit::f64 time = -1.0; // view time of the last update
     std::vector<std::pair<std::string, Vec3>> events; // animation events (footsteps) for ctx.feedback
+    // Scratch buffers reused every frame (kept here instead of thread_local statics)
+    std::vector<std::string> fired;
+    std::vector<mealkit::asset::JointPose> pose;
+    std::vector<mealkit::asset::BoneMatrix> palette;
+    std::vector<Juice::Ghost> ghosts;
 };
 
 // Interpolated character centers by player slot (has = the slot has a character)

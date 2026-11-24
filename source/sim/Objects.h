@@ -10,7 +10,7 @@ namespace fusetag {
 
 // Play area (one per scene): the box the bots' nav grid is baked in and where they pick places to run to
 MEALKIT_OBJECT(MatchArea) {
-    static constexpr const char* kObjectLabel = "경기 영역";
+    static constexpr const char* kObjectLabel = "Match area";
     static constexpr mealkit::u32 kObjectFlags = mealkit::reflect::kObjectArea;
 };
 
@@ -18,38 +18,38 @@ MEALKIT_OBJECT(MatchArea) {
 // shove, get tagged, or the it player stands next to them for searchTime. Drawn by the view as a bush/locker/pile of its size
 MEALKIT_ENUM(HideKind, mealkit::u8, Bush, Locker, Pile);
 MEALKIT_OBJECT(HideSpot) {
-    static constexpr const char* kObjectLabel = "숨는 곳";
+    static constexpr const char* kObjectLabel = "Hiding spot";
     static constexpr mealkit::u32 kObjectFlags = mealkit::reflect::kObjectArea;
-    MEALKIT_FIELD(HideKind, kind, HideKind::Bush, "모양");
+    MEALKIT_FIELD(HideKind, kind, HideKind::Bush, "Shape");
 };
 
 // A loose physics box (crate, barrel, cart) that can be knocked over and shoved to block a corridor. Size = the object's scale
 MEALKIT_OBJECT(Prop) {
-    static constexpr const char* kObjectLabel = "물리 물체";
-    MEALKIT_FIELD(mealkit::f32, mass, 40.0f, "질량 (kg)");
+    static constexpr const char* kObjectLabel = "Physics prop";
+    MEALKIT_FIELD(mealkit::f32, mass, 40.0f, "Mass (kg)");
 };
 
 // Item crate: touching it gives a random item (tables/items.table weights) to a player without one; comes back after respawn
 MEALKIT_OBJECT(ItemCrate) {
-    static constexpr const char* kObjectLabel = "아이템 상자";
-    MEALKIT_FIELD(mealkit::Ticks, respawn, mealkit::Ticks::seconds(12.0f), "다시 나타나는 시간 (초)");
+    static constexpr const char* kObjectLabel = "Item crate";
+    MEALKIT_FIELD(mealkit::Ticks, respawn, mealkit::Ticks::seconds(12.0f), "Respawn time (s)");
 };
 
 // Rule zone (area): runs a tables/rules.table row for players who enter, stay inside or leave (sim/Rules.cpp)
 MEALKIT_OBJECT(RuleZone) {
-    static constexpr const char* kObjectLabel = "규칙 구역";
+    static constexpr const char* kObjectLabel = "Rule zone";
     static constexpr mealkit::u32 kObjectFlags = mealkit::reflect::kObjectArea;
-    MEALKIT_FIELD(mealkit::RowRef<Rule>, rule, {}, "규칙 (rules.table 행)");
+    MEALKIT_FIELD(mealkit::RowRef<Rule>, rule, {}, "Rule (rules.table row)");
 };
 
 // Rule timer: on for onTime at the start of every period from start; a Timer row reaches every player in the round while it is on
 MEALKIT_OBJECT(RuleTimer) {
-    static constexpr const char* kObjectLabel = "규칙 타이머";
+    static constexpr const char* kObjectLabel = "Rule timer";
     static constexpr mealkit::u32 kObjectFlags = mealkit::reflect::kObjectMarker;
-    MEALKIT_FIELD(mealkit::Ticks, period, mealkit::Ticks::seconds(30.0f), "주기 (초, 0이면 한 번)");
-    MEALKIT_FIELD(mealkit::Ticks, onTime, mealkit::Ticks::seconds(5.0f), "켜져 있는 시간 (초)");
-    MEALKIT_FIELD(mealkit::Ticks, start, mealkit::Ticks::seconds(20.0f), "처음 켜지는 때 (매치 시작부터 초)");
-    MEALKIT_FIELD(mealkit::RowRef<Rule>, rule, {}, "규칙 (rules.table 행)");
+    MEALKIT_FIELD(mealkit::Ticks, period, mealkit::Ticks::seconds(30.0f), "Period (s, 0 = once)");
+    MEALKIT_FIELD(mealkit::Ticks, onTime, mealkit::Ticks::seconds(5.0f), "On time (s)");
+    MEALKIT_FIELD(mealkit::Ticks, start, mealkit::Ticks::seconds(20.0f), "First on (s from match start)");
+    MEALKIT_FIELD(mealkit::RowRef<Rule>, rule, {}, "Rule (rules.table row)");
 };
 
 } // namespace fusetag
