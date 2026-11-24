@@ -1,7 +1,7 @@
 # FuseTag
 
-A game project made with the [MealKit engine](D:/MealKit-Engine/MealKit/README.md).
-The engine and editor are in `D:\MealKit-Engine\MealKit`; this folder holds only **game code, assets, and build output**.
+A game project made with the [MealKit engine](/mnt/drive/MealKit/MealKit-Engine/MealKit/README.md).
+The engine and editor are in `/mnt/drive/MealKit/MealKit-Engine/MealKit`; this folder holds only **game code, assets, and build output**.
 
 ## Folders
 
@@ -13,19 +13,19 @@ The engine and editor are in `D:\MealKit-Engine\MealKit`; this folder holds only
 | `art/` | External tool sources (`.blend`, Penpot, PSD, sound projects). Not included in shipping or the content hash |
 | `modules/` | Source modules (stage 4) |
 | `third_party/` | External libraries the game uses. Each `<lib>/` has the original `LICENSE` and a `mealkit.txt` (name, version, license, licenseFile, source, usedIn, kept). Can't be used in `sim/` |
-| `build/Editor/` | Game code `FuseTag_game.dll` loaded by the editor |
-| `build/Release/` | Shipping `FuseTag.exe` (determinism tests, running directly) |
-| `export/FuseTag/` | **The shipping build.** Give this whole folder to friends or upload it to Steam |
+| `build/<os>/Editor/` | Game code `FuseTag_game.dll` loaded by the editor |
+| `build/<os>/Release/` | Shipping `FuseTag.exe` (determinism tests, running directly) |
+| `export/<os>/FuseTag/` | **The shipping build.** Give this whole folder to friends or upload it to Steam |
 
 ## Workflow
 
 1. Open the editor with `editor.bat` (the engine's `MealKitEditor.exe` opens this project). The first time, wait a moment while game code builds.
    Running the engine editor by itself shows the **project manager**, where you can pick a recent project.
-2. Open this folder in VS Code and edit game code **with the editor left open**. Other editors that use clangd (Zed, Neovim, CLion, ...) read `.clangd` and need no setup; all of them need one Editor build first for `build/Editor/compile_commands.json`. Visual Studio and CLion open the folder through `CMakePresets.json` (Editor/Release/Debug, same `build/<config>` folders as `build.bat`); still run `build.bat Editor` once, since it builds the engine's editor first.
+2. Open this folder in VS Code and edit game code **with the editor left open**. Other editors that use clangd (Zed, Neovim, CLion, ...) read `.clangd` and need no setup; all of them need one Editor build first for `build/compile_commands.json` (copied from `build/<os>/Editor`). Visual Studio and CLion open the folder through `CMakePresets.json` (Editor/Release/Debug, same `build/windows/<config>` folders as `build.bat`); still run `build.bat Editor` once, since it builds the engine's editor first.
 3. `Ctrl+Shift+B` (build game code) → the editor detects the new DLL and **swaps it in automatically** (hot reload). Pressing `Ctrl+R` in the editor works too.
    The scene, camera, and selection stay as they are. During play, it switches after stopping.
 4. Scene editing and `F5` play happen in the editor. During editor play, the same game code runs as a DLL.
-5. **Shipping build**: editor `Build → Shipping Build` (`Ctrl+B`) or `build.bat Export` → `export\FuseTag\`.
+5. **Shipping build**: editor `Build → Shipping Build` (`Ctrl+B`) or `build.bat Export` → `export\<os>\FuseTag\`.
 6. Checking multiplayer: `Tasks: Run Task` → `Multiplayer Determinism Test` (must PASS).
 7. Debugging: VS Code `F5` → `Editor (debug game code)` sets breakpoints in game code inside the editor.
 
@@ -34,5 +34,5 @@ The engine and editor are in `D:\MealKit-Engine\MealKit`; this folder holds only
 - `source/sim/` is lockstep deterministic code. Follow "Determinism rules" in the engine's `docs/CODING_MODEL.md` (no CRT trig functions, only `Pcg32`, fixed iteration order, new state into `hash()`).
 - Multiplayer connects only when every player has **the same exe, the same scene, and the same model files**. Share the whole shipping folder.
 - The Steam app ID is `STEAM_APP_ID` in `CMakeLists.txt` (default 480 = Valve's test app). With your own app ID, `steam_appid.txt` isn't put in the shipping folder (Steam launches it).
-- Engine changes are made in the engine folder (`D:\MealKit-Engine\MealKit`). When the engine changes, the editor rebuilds game code.
-- The engine decides the folder layout. `D:\MealKit-Engine\MealKit\tools\check_layout.ps1 -Project .` finds misplaced files (Export fails with the same check), and the editor warns when opening the project.
+- Engine changes are made in the engine folder (`/mnt/drive/MealKit/MealKit-Engine/MealKit`). When the engine changes, the editor rebuilds game code.
+- The engine decides the folder layout. `/mnt/drive/MealKit/MealKit-Engine/MealKit\tools\check_layout.ps1 -Project .` finds misplaced files (Export fails with the same check), and the editor warns when opening the project.

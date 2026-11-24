@@ -53,8 +53,8 @@
             "label": "Multiplayer Determinism Test",
             "type": "shell",
             "command": "powershell",
-            "args": ["-ExecutionPolicy", "Bypass", "-File", "D:/MealKit-Engine/MealKit/tools/mp_test.ps1", "-Clients", "3", "-Ticks", "900",
-                     "-Exe", "${workspaceFolder}\\build\\Release\\bin\\FuseTag.exe"],
+            "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/../../MealKit/tools/mp_test.ps1", "-Clients", "3", "-Ticks", "900",
+                     "-Exe", "${workspaceFolder}\\build\\windows\\Release\\bin\\FuseTag.exe"],
             "dependsOn": "Build Release",
             "problemMatcher": []
         }
