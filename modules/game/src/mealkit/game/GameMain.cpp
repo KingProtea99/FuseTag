@@ -1,3 +1,4 @@
+// Vendored copy of module-game 0.2.6; change it in that repo (tools\module.ps1 update), not here.
 // main of the shipping exe (mealkit/game/GameMain.h). The game's app/main.cpp calls it via MEALKIT_GAME_MAIN.
 //
 //   <game>.exe                         games with menus start at the title (GameInstance::menus), otherwise solo play
@@ -596,6 +597,7 @@ int runGame(MatchOptions opt, const WindowOptions& win, const GameMainSpec& spec
         for (const auto& [pressFrame, node] : win.uiPresses) // screen flow tests: press the widget on this frame (the game receives the action this frame)
             if (pressFrame == frameCount && !front.ui().pressAny(node)) MEALKIT_WARN("--ui-press: no widget '%s' at frame %u", node.c_str(), pressFrame);
         game->update(ctx, dt);
+        if (matches.takeQuit()) window.close(); // the game's [Quit]
 #if MEALKIT_HAS_AUDIO
         audio.setOcclusionWorld(game->started() ? game->physics() : nullptr); // every frame: never left pointing at a finished match
         audio.setMuted(win.mute || (front.settings().values().audio.muteUnfocused && !window.focused()));

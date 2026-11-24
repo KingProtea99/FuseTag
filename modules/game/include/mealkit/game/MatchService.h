@@ -1,3 +1,4 @@
+// Vendored copy of module-game 0.2.6; change it in that repo (tools\module.ps1 update), not here.
 #pragma once
 
 #include "mealkit/core/Types.h"
@@ -101,6 +102,14 @@ public:
     void returnToLobby();
     // Anywhere: close the session and go to the menu
     void leave();
+    // The game's [Quit]: the shipping exe closes its window, editor play stops (the editor window stays). Games call this
+    // instead of ctx.window.close(), which in the editor is the editor's own window
+    void quit() { m_quit = true; }
+    bool takeQuit() {
+        const bool q = m_quit;
+        m_quit = false;
+        return q;
+    }
 
     bool onlineAvailable() const;
     bool usesOnline() const { return m_online; }
@@ -144,6 +153,7 @@ private:
     u32 m_maxPlayers = 0;
     bool m_online = false;      // this session uses an online lobby
     bool m_onlineHost = false;
+    bool m_quit = false; // quit() was called and nobody took it yet
     f64 m_now = 0.0;
 };
 

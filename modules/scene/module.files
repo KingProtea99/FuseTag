@@ -1,6 +1,6 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine scene 0.3.0 v0.3.0 7114ac29afb38360f67135add7b6a0930c4d435a https://github.com/MealKit-Engine/module-scene
-bee6d5cba84095c75736d6fb24595f92ce52da40a4ef4b2df565da50f2ed31fd  include/mealkit/scene/Scene.h
+source engine scene 0.3.2 v0.3.2 064427331c14c45c2dfd5ab278e731ac2ff8a7d0 https://github.com/MealKit-Engine/module-scene
+cfba7589eafb705b0ea97ced3080e4ae6b185a19f29274084b7dbb08436c3d3d  include/mealkit/scene/Scene.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
-c290424f580cbc4f55704edecede9e3d4fc190006981055ae1dc8b781143ac7e  module.txt
-b45193346f29c1ba260f82935d89a8370445aae4955d500dc9f78cbda66cbdbd  src/mealkit/scene/Scene.cpp
+7fdc28d00122246679ad52c5676be79331949e1834c7a236539d542f03717e3d  module.txt
+d359b6759c5174c0b62503f4061f82c04d901b3c41f9b5d52fb1359651077442  src/mealkit/scene/Scene.cpp

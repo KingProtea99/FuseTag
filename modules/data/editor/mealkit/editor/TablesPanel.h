@@ -1,3 +1,4 @@
+// Vendored copy of module-data 0.1.8; change it in that repo (tools\module.ps1 update), not here.
 #pragma once
 
 #include "mealkit/core/Reflect.h"
@@ -9,7 +10,8 @@
 #include <vector>
 
 // Table pages of the editor [Data] window: edits definition data tables registered by the game with MEALKIT_TABLE (assets/tables/*.table) like a spreadsheet.
-// Add/duplicate/delete/reorder rows, field widgets per cell (dropdowns for row references), missing id reference warnings, CSV import/export, save/reload.
+// Add/duplicate/delete/reorder rows, field widgets per cell (dropdowns for row references), missing id reference warnings, CSV import/export, save/reload,
+// a clicked cell range (shift+click extends) copied and pasted as tab-separated text with Excel and Google Sheets (Ctrl+C / Ctrl+V).
 // Table value instances are of the game DLL's types, so they're kept as text before unloading the DLL and rebuilt with the new type (same as tuning).
 namespace mealkit::editor {
 
@@ -56,7 +58,11 @@ private:
         bool dirty = false;
         bool viewChanged = false;
         int selected = -1;
+        int anchorRow = -1, anchorCol = 0, focusRow = -1, focusCol = 0; // cell range for copy and paste (col 0 = id, then doc.columns)
         std::string status;
+        std::string csvPath;        // file whose import preview is open
+        data::CsvPreview csv;
+        bool csvOpen = false;       // open the preview window this frame
         UndoStack<data::TableText> undo;
     };
 
@@ -65,17 +71,25 @@ private:
     bool save(Doc& doc);
     void rebuildIndex();
     void drawDoc(Doc& doc, void* owner, bool editing);
+    void drawImportPreview(Doc& doc);
+    // The CSV last imported or exported per table (<project>/build/editor/table_csv.txt, per user and out of git): inside the project as a relative path
+    std::string csvPathOf(const Doc& doc) const;
+    void rememberCsvPath(const Doc& doc, const std::string& path);
+    void loadCsvPaths();
     std::string uniqueId(const Doc& doc, const std::string& base) const;
 
     std::string m_projectDir;
     reflect::TableList m_engineTables;
     std::vector<Doc> m_docs;
+    std::vector<std::pair<std::string, std::string>> m_csvPaths; // table asset path -> file
     int m_current = 0;
     data::TableIndexList m_index;
     char m_idBuffer[128] = {};
     int m_idRow = -1;
     int m_scrollToRow = -1;
     char m_rowFilter[64] = {};
+    f32 m_scalePercent = 10.0f;     // [Scale %]: change of the selected number cells in percent (+10 = 10% more, -20 = 20% less)
+    bool m_scaleRequested = false;  // applied while drawing the cells, where the selected range is known
     bool m_sorted = false;
 };
 

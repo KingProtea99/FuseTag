@@ -1,3 +1,4 @@
+// Vendored copy of module-feedback 0.1.5; change it in that repo (tools\module.ps1 update), not here.
 #include "mealkit/feedback/Feedback.h"
 
 #if MEALKIT_HAS_AUDIO

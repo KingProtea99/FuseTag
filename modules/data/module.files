@@ -1,8 +1,8 @@
 # MealKit module files (sha256  path). tools\module.ps1 update replaces a file only while its hash matches.
-source engine data 0.1.2 v0.1.2 4f58d548daafa2d2b88204a99f499ac70676a317 https://github.com/MealKit-Engine/module-data
-85d30f92ebc3be32e9a1a5051a0a786fc9dabd7a822b0dc4abe97f10bbabd929  editor/mealkit/editor/TablesPanel.cpp
-316e26349dac6203761ba75fb066b2b0978f8ec1dc09648d1b14d2ee1c48c736  editor/mealkit/editor/TablesPanel.h
-79f029abc53e062295852c55cbc71e9684bce399d2254fb04c1fabb5daeb7047  include/mealkit/data/Tables.h
+source engine data 0.1.8 v0.1.8 6caf5d34c94cbda66558ed1f57971628c8c3a361 https://github.com/MealKit-Engine/module-data
+9193eea58159efcb732d8934efc51be704c69f41afe37f001d45d51b30581088  editor/mealkit/editor/TablesPanel.cpp
+af4732d2e85155fa2daaf15327035ab95eb2603cbe04c40b4f2d406e3146b423  editor/mealkit/editor/TablesPanel.h
+2ab23327d8b3669503310278a8eaf350d6815586820ee2e094584e2c0e52d23c  include/mealkit/data/Tables.h
 f6f4c6eac2951520252a60a045ac4a2b0f6b6c65b345021dd2870212027187eb  LICENSE
-a7e192358e4b3e9297bb3586cd8e89cafcc6b2fef669bbb0b3e5065195d0e61f  module.txt
-274ca41f7180612300d91ff71e3c96c5bb766099e4f85054030ffbbf5d9768b3  src/mealkit/data/Tables.cpp
+c768feb01af4f739847062f3b007688e93f103a88ad4234b1b08345edc08cb6d  module.txt
+2de7d72380c3b71805f953e7d776b9d993583cca7be4ec9917f4326912e299f7  src/mealkit/data/Tables.cpp

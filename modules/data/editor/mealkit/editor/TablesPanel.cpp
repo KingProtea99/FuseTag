@@ -1,3 +1,4 @@
+// Vendored copy of module-data 0.1.8; change it in that repo (tools\module.ps1 update), not here.
 #include "mealkit/editor/TablesPanel.h"
 
 #include "mealkit/core/Log.h"
@@ -8,6 +9,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -19,14 +21,54 @@ namespace {
 const FileFilter kCsvFilters[] = {{"CSV (*.csv)", "*.csv"}, {"All files (*.*)", "*.*"}};
 
 std::string backslashes(std::string path) {
-    std::replace(path.begin(), path.end(), '/', '\\');
+    path = nativePath(path);
     return path;
 }
 
 } // namespace
 
+std::string TablesPanel::csvPathOf(const Doc& doc) const {
+    for (const auto& [table, file] : m_csvPaths)
+        if (table == doc.info.path) return isAbsolutePath(file) ? file : nativePath(m_projectDir + "/" + file);
+    return {};
+}
+
+void TablesPanel::rememberCsvPath(const Doc& doc, const std::string& path) {
+    std::string stored = path;
+    const std::string prefix = nativePath(m_projectDir + "/");
+    if (stored.compare(0, prefix.size(), prefix) == 0) stored = stored.substr(prefix.size());
+    for (auto& entry : m_csvPaths)
+        if (entry.first == doc.info.path) {
+            entry.second = stored;
+            stored.clear();
+            break;
+        }
+    if (!stored.empty()) m_csvPaths.emplace_back(doc.info.path, stored);
+    std::string text;
+    for (const auto& [table, file] : m_csvPaths) text += table + " " + file + "\n";
+    createDirectories(m_projectDir + "/build/editor");
+    writeTextFile(m_projectDir + "/build/editor/table_csv.txt", text);
+}
+
+void TablesPanel::loadCsvPaths() {
+    m_csvPaths.clear();
+    std::string text;
+    if (m_projectDir.empty() || !readTextFile(m_projectDir + "/build/editor/table_csv.txt", text)) return;
+    size_t start = 0;
+    while (start < text.size()) {
+        size_t end = text.find('\n', start);
+        if (end == std::string::npos) end = text.size();
+        std::string line = text.substr(start, end - start);
+        start = end + 1;
+        while (!line.empty() && line.back() == '\r') line.pop_back();
+        const size_t space = line.find(' ');
+        if (space != std::string::npos && space > 0 && space + 1 < line.size()) m_csvPaths.emplace_back(line.substr(0, space), line.substr(space + 1));
+    }
+}
+
 void TablesPanel::setProjectDirectory(const std::string& directory) {
     m_projectDir = directory;
+    loadCsvPaths();
     for (Doc& doc : m_docs) {
         doc.path = backslashes(m_projectDir + "/" + assetFilePath(doc.info.path));
         if (doc.data.rowType) load(doc);
@@ -218,6 +260,82 @@ void TablesPanel::step(int which, bool back) {
     rebuildIndex();
 }
 
+// The window between choosing a CSV and replacing the table: counts, what to check, and the changed cells
+void TablesPanel::drawImportPreview(Doc& doc) {
+    if (doc.csvOpen) {
+        ImGui::OpenPopup(trl("Import CSV Preview###csvPreview"));
+        doc.csvOpen = false;
+    }
+    const f32 em = ImGui::GetFontSize();
+    ImGui::SetNextWindowSize(ImVec2(em * 52.0f, em * 30.0f), ImGuiCond_Appearing);
+    bool open = true;
+    if (!ImGui::BeginPopupModal(trl("Import CSV Preview###csvPreview"), &open)) return;
+    const data::CsvPreview& p = doc.csv;
+    std::string rowsChanged;
+    {
+        std::vector<std::string> seen;
+        for (const data::CsvChange& c : p.changed)
+            if (std::find(seen.begin(), seen.end(), c.row) == seen.end()) seen.push_back(c.row);
+        rowsChanged = std::to_string(seen.size());
+    }
+    ImGui::TextUnformatted(doc.csvPath.c_str());
+    ImGui::TextWrapped("%s", trf("%zu cells changed in %s rows, %zu rows added, %zu rows removed, %zu rows the same", p.changed.size(), rowsChanged.c_str(), p.added.size(), p.removed.size(), p.sameRows).c_str());
+    if (p.changed.empty() && p.added.empty() && p.removed.empty()) ImGui::TextDisabled("%s", tr("The file has the same values as the table."));
+    if (!p.removed.empty()) ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "%s", tr("Rows that are not in the file are removed."));
+    constexpr size_t kShown = 500;
+    const f32 footer = ImGui::GetFrameHeightWithSpacing() + ImGui::GetStyle().ItemSpacing.y;
+    if (ImGui::BeginChild("##csvLists", ImVec2(0.0f, -footer))) {
+        if (!p.notes.empty() && ImGui::CollapsingHeader(trf("Check before importing (%zu)", p.notes.size()).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+            for (const std::string& note : p.notes) ImGui::TextWrapped("- %s", note.c_str());
+        if (!p.changed.empty() && ImGui::CollapsingHeader(trf("Changed cells (%zu)", p.changed.size()).c_str(), ImGuiTreeNodeFlags_DefaultOpen) &&
+            ImGui::BeginTable("##csvChanged", 4, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Resizable)) {
+            ImGui::TableSetupColumn(tr("Row"));
+            ImGui::TableSetupColumn(tr("Column"));
+            ImGui::TableSetupColumn(tr("Now"));
+            ImGui::TableSetupColumn(tr("In the file"));
+            ImGui::TableHeadersRow();
+            for (size_t i = 0; i < p.changed.size() && i < kShown; ++i) {
+                const data::CsvChange& c = p.changed[i];
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn(); ImGui::TextUnformatted(c.row.c_str());
+                ImGui::TableNextColumn(); ImGui::TextUnformatted(c.column.c_str());
+                ImGui::TableNextColumn(); ImGui::TextDisabled("%s", c.before.c_str());
+                ImGui::TableNextColumn(); ImGui::TextUnformatted(c.after.c_str());
+            }
+            ImGui::EndTable();
+            if (p.changed.size() > kShown) ImGui::TextDisabled("%s", trf("%zu more not listed", p.changed.size() - kShown).c_str());
+        }
+        const auto list = [&](const std::vector<std::string>& ids, const char* title) {
+            if (ids.empty() || !ImGui::CollapsingHeader(trf("%s (%zu)", title, ids.size()).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) return;
+            for (size_t i = 0; i < ids.size() && i < kShown; ++i) ImGui::BulletText("%s", ids[i].c_str());
+            if (ids.size() > kShown) ImGui::TextDisabled("%s", trf("%zu more not listed", ids.size() - kShown).c_str());
+        };
+        list(p.added, tr("Added rows"));
+        list(p.removed, tr("Removed rows"));
+    }
+    ImGui::EndChild();
+    bool close = !open;
+    if (ImGui::Button(tr("Import"))) {
+        std::string error;
+        data::TableData& t = doc.data;
+        if (data::importTableCsv(t, doc.csvPath, &error)) {
+            doc.selected = -1;
+            doc.status = trf("Imported %s (%zu rows) - save to write the table", fileName(doc.csvPath).c_str(), t.rows.size());
+            doc.dirty = true;
+            if ((doc.info.flags & reflect::kTableView) != 0) doc.viewChanged = true;
+            doc.undo.mark();
+            rememberCsvPath(doc, doc.csvPath);
+        } else {
+            doc.status = trf("Could not import: %s", error.c_str());
+        }
+        close = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(tr("Cancel"))) close = true;
+    if (close) ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+}
+
 void TablesPanel::drawDoc(Doc& doc, void* owner, bool editing) {
     (void)editing;
     data::TableData& t = doc.data;
@@ -290,26 +408,37 @@ void TablesPanel::drawDoc(Doc& doc, void* owner, bool editing) {
     ImGui::SameLine();
     ImGui::TextDisabled("|");
     ImGui::SameLine();
-    if (ImGui::Button(tr("Import CSV..."))) {
-        const std::string csv = openFileDialog(owner, "", m_projectDir, kCsvFilters, 2);
+    // Import replaces the whole table, so the changes are shown first and nothing happens until they are accepted
+    const auto startImport = [&](const std::string& csv) {
         std::string error;
-        if (!csv.empty()) {
-            if (data::importTableCsv(t, csv, &error)) {
-                doc.selected = -1;
-                doc.status = trf("Imported %s (%zu rows) - save to write the table", fileName(csv).c_str(), t.rows.size());
-                changed();
-            } else {
-                doc.status = trf("Could not import: %s", error.c_str());
-            }
+        if (data::previewTableCsv(t, csv, doc.csv, &error)) {
+            doc.csvPath = csv;
+            doc.csvOpen = true;
+        } else {
+            doc.status = trf("Could not import: %s", error.c_str());
         }
+    };
+    const std::string lastCsv = csvPathOf(doc);
+    if (ImGui::Button(tr("Import CSV..."))) {
+        const std::string csv = openFileDialog(owner, lastCsv.empty() ? "" : fileName(lastCsv), lastCsv.empty() ? m_projectDir : parentDirectory(lastCsv), kCsvFilters, 2);
+        if (!csv.empty()) startImport(csv);
     }
+    ImGui::SameLine();
+    ImGui::BeginDisabled(lastCsv.empty() || !fileExists(lastCsv));
+    if (ImGui::Button(tr("Reimport"))) startImport(lastCsv);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled | ImGuiHoveredFlags_DelayShort))
+        ImGui::SetTooltip("%s", lastCsv.empty() ? tr("Import or export a CSV first: the table remembers its file") : lastCsv.c_str());
     ImGui::SameLine();
     if (ImGui::Button(tr("Export CSV..."))) {
         const std::string base = fileName(doc.info.path);
         const std::string name = base.substr(0, base.rfind('.')) + ".csv";
-        const std::string csv = saveFileDialog(owner, name, m_projectDir, kCsvFilters, 2, "csv");
-        if (!csv.empty())
-            doc.status = data::exportTableCsv(t, csv) ? trf("Exported %s", csv.c_str()) : trf("Could not write %s", csv.c_str());
+        const std::string csv = saveFileDialog(owner, lastCsv.empty() ? name : fileName(lastCsv), lastCsv.empty() ? m_projectDir : parentDirectory(lastCsv), kCsvFilters, 2, "csv");
+        if (!csv.empty()) {
+            const bool written = data::exportTableCsv(t, csv);
+            doc.status = written ? trf("Exported %s", csv.c_str()) : trf("Could not write %s", csv.c_str());
+            if (written) rememberCsvPath(doc, csv);
+        }
     }
     // The note moved to a tooltip: on a short bottom strip the rows need the room
     ImGui::SameLine();
@@ -323,6 +452,19 @@ void TablesPanel::drawDoc(Doc& doc, void* owner, bool editing) {
     FieldContext context{&m_index};
     ImGui::SetNextItemWidth(ImGui::GetFontSize() * 14.0f);
     ImGui::InputTextWithHint("##rowFilter", tr("Filter rows"), m_rowFilter, sizeof(m_rowFilter));
+    // Bulk edit by percentage over the selected cells (a single value is set by pasting it over the range)
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 5.0f);
+    ImGui::InputFloat("##scalePercent", &m_scalePercent, 0.0f, 0.0f, "%.4g%%");
+    m_scalePercent = std::clamp(m_scalePercent, -100.0f, 10000.0f);
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+        ImGui::SetTooltip("%s", tr("Percent to change the selected number cells by: +10 is ten percent more, -20 is twenty percent less"));
+    ImGui::SameLine();
+    ImGui::BeginDisabled(doc.anchorRow < 0);
+    if (ImGui::Button(tr("Scale Selected"))) m_scaleRequested = true;
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort | ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", tr("Multiplies the number cells of the selected range (click a cell, shift+click another) by the percent. Other cells are left alone"));
     const bool rowSelected = doc.selected >= 0 && doc.selected < static_cast<int>(t.rows.size());
     const f32 detailHeight = rowSelected ? ImGui::GetContentRegionAvail().y * 0.35f : 0.0f;
     const int columns = 2 + static_cast<int>(doc.columns.size());
@@ -389,6 +531,107 @@ void TablesPanel::drawDoc(Doc& doc, void* owner, bool editing) {
                 return x < y;
             });
         }
+        // Cell range (anchor to focus, in the order shown). Ctrl+C copies it as tab-separated text, Ctrl+V pastes from its top-left cell
+        std::vector<int> position(t.rows.size(), -1);
+        for (size_t s = 0; s < order.size(); ++s) position[static_cast<size_t>(order[s])] = static_cast<int>(s);
+        const auto isShown = [&](int row) { return row >= 0 && row < static_cast<int>(position.size()) && position[static_cast<size_t>(row)] >= 0; };
+        int rowLo = -1, rowHi = -1, colLo = 0, colHi = 0;
+        if (isShown(doc.anchorRow) && isShown(doc.focusRow)) {
+            rowLo = std::min(position[static_cast<size_t>(doc.anchorRow)], position[static_cast<size_t>(doc.focusRow)]);
+            rowHi = std::max(position[static_cast<size_t>(doc.anchorRow)], position[static_cast<size_t>(doc.focusRow)]);
+            colLo = std::min(doc.anchorCol, doc.focusCol);
+            colHi = std::min(std::max(doc.anchorCol, doc.focusCol), static_cast<int>(doc.columns.size()));
+        }
+        const auto columnName = [&](int col) -> std::string { return col == 0 ? std::string("id") : doc.columns[static_cast<size_t>(col - 1)]; };
+        if (m_scaleRequested) {
+            m_scaleRequested = false;
+            if (rowLo < 0) {
+                doc.status = tr("Select cells first: click a cell, shift+click another");
+            } else {
+                const double factor = 1.0 + static_cast<double>(m_scalePercent) / 100.0;
+                int scaled = 0, same = 0, failed = 0;
+                std::string firstError;
+                for (int s = rowLo; s <= rowHi; ++s) {
+                    for (int col = std::max(colLo, 1); col <= colHi; ++col) {
+                        std::string error;
+                        switch (data::scaleCell(t, static_cast<size_t>(order[static_cast<size_t>(s)]), columnName(col), factor, &error)) {
+                        case data::ScaleResult::Changed: ++scaled; break;
+                        case data::ScaleResult::Unchanged: ++same; break;
+                        case data::ScaleResult::Failed:
+                            if (!failed) firstError = error;
+                            ++failed;
+                            break;
+                        case data::ScaleResult::NotNumber: break;
+                        }
+                    }
+                }
+                if (scaled) changed();
+                doc.status = trf("Scaled %d cells by %+.4g%%", scaled, static_cast<double>(m_scalePercent));
+                if (same) doc.status += trf(" (%d did not change)", same);
+                if (failed) doc.status += trf(" (%d not accepted, first: %s)", failed, firstError.c_str());
+            }
+        }
+        if (rowLo >= 0 && ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && !ImGui::GetIO().WantTextInput && ImGui::GetIO().KeyCtrl) {
+            if (ImGui::IsKeyPressed(ImGuiKey_C, false)) {
+                std::vector<std::vector<std::string>> cells;
+                for (int s = rowLo; s <= rowHi; ++s) {
+                    cells.emplace_back();
+                    for (int col = colLo; col <= colHi; ++col) cells.back().push_back(data::cellText(t, static_cast<size_t>(order[static_cast<size_t>(s)]), columnName(col)));
+                }
+                ImGui::SetClipboardText(data::formatTsv(cells).c_str());
+                doc.status = trf("Copied %d cells", (rowHi - rowLo + 1) * (colHi - colLo + 1));
+            } else if (ImGui::IsKeyPressed(ImGuiKey_V, false)) {
+                const char* clip = ImGui::GetClipboardText();
+                const std::vector<std::vector<std::string>> cells = data::parseTsv(clip ? clip : "");
+                if (!cells.empty()) {
+                    const bool single = cells.size() == 1 && cells[0].size() == 1; // one value fills the whole range, like a spreadsheet
+                    size_t width = 0;
+                    for (const auto& line : cells) width = std::max(width, line.size());
+                    const int rowsToFill = single ? rowHi - rowLo + 1 : static_cast<int>(cells.size());
+                    const int colsToFill = single ? colHi - colLo + 1 : static_cast<int>(width);
+                    int done = 0, failed = 0, outside = 0;
+                    std::string firstError;
+                    for (int r = 0; r < rowsToFill; ++r) {
+                        for (int c = 0; c < colsToFill; ++c) {
+                            const int s = rowLo + r, col = colLo + c;
+                            const size_t line = single ? 0 : static_cast<size_t>(r);
+                            if (!single && static_cast<size_t>(c) >= cells[line].size()) continue; // a short line leaves the rest alone
+                            if (s >= static_cast<int>(order.size()) || col > static_cast<int>(doc.columns.size())) {
+                                ++outside;
+                                continue;
+                            }
+                            std::string error;
+                            if (data::setCellText(t, static_cast<size_t>(order[static_cast<size_t>(s)]), columnName(col), single ? cells[0][0] : cells[line][static_cast<size_t>(c)], &error)) {
+                                ++done;
+                            } else {
+                                if (!failed) firstError = error;
+                                ++failed;
+                            }
+                        }
+                    }
+                    if (done) changed();
+                    doc.status = trf("Pasted %d cells", done);
+                    if (outside) doc.status += trf(" (%d past the table's end skipped)", outside);
+                    if (failed) doc.status += trf(" (%d not accepted, first: %s)", failed, firstError.c_str());
+                    if (!single) { // the range becomes what was pasted
+                        doc.focusRow = order[static_cast<size_t>(std::min(rowLo + rowsToFill, static_cast<int>(order.size())) - 1)];
+                        doc.focusCol = std::min(colLo + colsToFill - 1, static_cast<int>(doc.columns.size()));
+                    }
+                }
+            }
+        }
+        const auto inRange = [&](int row, int col) {
+            return rowLo >= 0 && isShown(row) && position[static_cast<size_t>(row)] >= rowLo && position[static_cast<size_t>(row)] <= rowHi && col >= colLo && col <= colHi;
+        };
+        const auto clickCell = [&](int row, int col) { // click picks a cell, shift+click extends the range
+            if (ImGui::GetIO().KeyShift && doc.anchorRow >= 0) {
+                doc.focusRow = row;
+                doc.focusCol = col;
+            } else {
+                doc.anchorRow = doc.focusRow = row;
+                doc.anchorCol = doc.focusCol = col;
+            }
+        };
         std::vector<FieldLabel> attributes; // ranges, units and pickers of top-level fields also apply in cells
         for (const std::string& c : doc.columns) {
             const reflect::FieldInfo* field = t.rowType->field(c.c_str());
@@ -413,15 +656,17 @@ void TablesPanel::drawDoc(Doc& doc, void* owner, bool editing) {
                 ImGui::TableNextColumn();
                 if (ImGui::Selectable(std::to_string(row).c_str(), doc.selected == row)) doc.selected = row;
                 ImGui::TableNextColumn();
+                if (inRange(row, 0)) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
                 // id: applied on Enter or clicking elsewhere (letters/digits/_/-/. , unique within the table)
                 char temp[128];
                 char* buffer = m_idRow == row ? m_idBuffer : temp;
-                if (m_idRow != row) strncpy_s(temp, t.ids[r].c_str(), _TRUNCATE);
+                if (m_idRow != row) std::snprintf(temp, sizeof(temp), "%s", t.ids[r].c_str());
                 ImGui::SetNextItemWidth(-FLT_MIN);
                 ImGui::InputText("##id", buffer, sizeof(m_idBuffer));
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) clickCell(row, 0);
                 if (ImGui::IsItemActivated()) {
                     m_idRow = row;
-                    strncpy_s(m_idBuffer, t.ids[r].c_str(), _TRUNCATE);
+                    std::snprintf(m_idBuffer, sizeof(m_idBuffer), "%s", t.ids[r].c_str());
                 }
                 if (ImGui::IsItemDeactivated() && m_idRow == row) {
                     const std::string id = m_idBuffer;
@@ -438,16 +683,27 @@ void TablesPanel::drawDoc(Doc& doc, void* owner, bool editing) {
                 for (size_t c = 0; c < doc.columns.size(); ++c) {
                     const std::string& path = doc.columns[c];
                     ImGui::TableNextColumn();
+                    if (inRange(row, static_cast<int>(c) + 1)) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
                     const reflect::ValueInfo* value = nullptr;
                     void* data = nullptr;
                     if (!reflect::resolvePath(*t.rowType, t.rows[r].data(), path, value, data)) continue;
                     ImGui::PushID(path.c_str());
                     ImGui::SetNextItemWidth(-FLT_MIN);
                     if (drawValueWidget("##v", path.c_str(), *value, data, &context, &attributes[c])) changed();
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) clickCell(row, static_cast<int>(c) + 1);
                     if (value->kind == reflect::Kind::Float && attributes[c].hasRange) { // how far along its range, under the number
                         const f32 share = std::clamp((*static_cast<const f32*>(data) - attributes[c].min) / (attributes[c].max - attributes[c].min), 0.0f, 1.0f);
                         const ImVec2 lo = ImGui::GetItemRectMin(), hi = ImGui::GetItemRectMax();
                         ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(lo.x, hi.y - 2.0f), ImVec2(lo.x + (hi.x - lo.x) * share, hi.y), ImGui::GetColorU32(ImGuiCol_PlotHistogram));
+                    }
+                    // A value outside the field's range=min..max gets a red frame (warn only: the value is kept, data::rowRangeWarnings logs it on load)
+                    double shown = 0.0;
+                    if (attributes[c].hasRange && data::valueOutOfRange(*value, data, attributes[c].min, attributes[c].max, &shown)) {
+                        const ImVec2 lo = ImGui::GetItemRectMin(), hi = ImGui::GetItemRectMax();
+                        ImGui::GetWindowDrawList()->AddRect(lo, hi, IM_COL32(230, 70, 60, 255), 0.0f, 0, 2.0f);
+                        if (ImGui::IsItemHovered())
+                            ImGui::SetTooltip("%s", trf("%.6g is outside the range %.6g..%.6g", shown, static_cast<double>(attributes[c].min),
+                                                        static_cast<double>(attributes[c].max)).c_str());
                     }
                     ImGui::PopID();
                 }
@@ -456,6 +712,7 @@ void TablesPanel::drawDoc(Doc& doc, void* owner, bool editing) {
         }
         ImGui::EndTable();
     }
+    drawImportPreview(doc);
     // Long values are easier to edit in the chosen row's own list
     if (rowSelected && doc.selected < static_cast<int>(t.rows.size())) {
         if (ImGui::BeginChild("##rowDetail", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders)) {

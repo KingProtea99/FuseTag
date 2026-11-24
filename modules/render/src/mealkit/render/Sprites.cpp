@@ -1,6 +1,8 @@
+// Vendored copy of module-render 0.6.2; change it in that repo (tools\module.ps1 update), not here.
 #include "mealkit/render/Sprites.h"
 
 #include "mealkit/core/Log.h"
+#include "mealkit/data/Tables.h"
 #include "mealkit/platform/Paths.h"
 
 #include <algorithm>
@@ -101,6 +103,55 @@ const SpriteTextures::Texture& SpriteTextures::get(const std::string& assetPath)
     return entry.texture;
 }
 
+bool SpriteClips::load() {
+    m_path = findAsset(std::string("assets/") + kSpriteClipTable);
+    m_time = m_path.empty() ? 0 : fileWriteTime(m_path);
+    m_table = {};
+    if (!m_path.empty()) data::loadTable(m_table, kSpriteClipTable);
+    return !m_path.empty();
+}
+
+bool SpriteClips::poll(f64 dt) {
+    m_check -= dt;
+    if (m_check > 0.0) return false;
+    m_check = 0.25;
+    const std::string path = findAsset(std::string("assets/") + kSpriteClipTable);
+    const unsigned long long t = path.empty() ? 0 : fileWriteTime(path);
+    if (path == m_path && t == m_time) return false;
+    load();
+    MEALKIT_INFO("Sprites: %u clip(s) from %s", count(), path.empty() ? "(no sprite_clips.table)" : path.c_str());
+    return true;
+}
+
+const SpriteClip* SpriteClips::find(std::string_view name) const {
+    const u32 row = m_table.find(name);
+    return row == kNoRow ? nullptr : &m_table[row];
+}
+
+u32 SpriteClips::frameAt(const SpriteClip& clip, f64 seconds) {
+    const i64 frames = std::max<i64>(clip.frames, 1);
+    if (!(seconds > 0.0) || !(clip.fps > 0.0f)) return 0;
+    const i64 step = static_cast<i64>(std::floor(seconds * static_cast<f64>(clip.fps)));
+    return static_cast<u32>(clip.loop ? step % frames : std::min(step, frames - 1));
+}
+
+u32 SpriteClips::cellAt(const SpriteClip& clip, f64 seconds) {
+    return static_cast<u32>(std::max(clip.firstCell, 0)) + frameAt(clip, seconds);
+}
+
+PixelView snapPixelView(Vec2 center, f32 halfHeight, f32 viewportHeightPixels, f32 pixelsPerUnit) {
+    PixelView out{center, halfHeight, 0};
+    if (!(pixelsPerUnit > 0.0f) || !(viewportHeightPixels >= 1.0f) || !(halfHeight > 0.0f)) return out;
+    const f32 requested = viewportHeightPixels / (2.0f * halfHeight * pixelsPerUnit); // screen pixels per art pixel as asked
+    const f32 zoom = std::max(1.0f, std::floor(requested + 0.5f));
+    out.zoom = static_cast<u32>(zoom);
+    out.halfHeight = viewportHeightPixels / (2.0f * pixelsPerUnit * zoom);
+    const f32 step = 1.0f / (pixelsPerUnit * zoom); // one screen pixel in meters
+    out.center.x = std::floor(center.x / step + 0.5f) * step;
+    out.center.y = std::floor(center.y / step + 0.5f) * step;
+    return out;
+}
+
 void spriteCell(Sprite& out, u32 columns, u32 rows, u32 cell) {
     columns = std::max(columns, 1u);
     rows = std::max(rows, 1u);
@@ -112,8 +163,17 @@ void spriteCell(Sprite& out, u32 columns, u32 rows, u32 cell) {
     out.v1 = out.v0 + ch;
 }
 
-void addSprite(DrawList& out, SpriteTextures& textures, const scene::Entity& e, const scene::Transform& world) {
-    const scene::SpriteFields f = scene::readObject<scene::SpriteFields>(e);
+void addSprite(DrawList& out, SpriteTextures& textures, const scene::Entity& e, const scene::Transform& world, const SpriteAnim* anim) {
+    scene::SpriteFields f = scene::readObject<scene::SpriteFields>(e);
+    if (anim && anim->clips) { // a clip (the view's choice, else the object's) replaces image, sheet and cell; an unknown name keeps the object's own
+        const std::string_view name = anim->clip.empty() ? std::string_view(f.clip) : anim->clip;
+        if (const SpriteClip* clip = name.empty() ? nullptr : anim->clips->find(name)) {
+            f.image = clip->image;
+            f.columns = clip->columns;
+            f.rows = clip->rows;
+            f.cell = static_cast<i32>(SpriteClips::cellAt(*clip, anim->time - anim->start));
+        }
+    }
     const SpriteTextures::Texture& tex = textures.get(f.image);
     Sprite s;
     s.position = world.position;
@@ -134,6 +194,42 @@ void addSprite(DrawList& out, SpriteTextures& textures, const scene::Entity& e, 
     s.layer = f.layer;
     s.flags = (f.flipX ? kSpriteFlipX : 0u) | (f.flipY ? kSpriteFlipY : 0u) | (f.pixelArt ? kSpritePoint : 0u);
     out.addSprite(s);
+}
+
+void addTilemap(DrawList& out, SpriteTextures& textures, const scene::Entity& e, const scene::Transform& world, const TileView* view) {
+    const scene::TilemapFields f = scene::readObject<scene::TilemapFields>(e);
+    const std::vector<i32> tiles = scene::parseTileCells(f.cells, f.width, f.height);
+    if (f.width <= 0 || tiles.empty() || !(f.cellSize > 0.0f)) return;
+    const i32 width = f.width, height = static_cast<i32>(tiles.size() / static_cast<size_t>(width));
+    const SpriteTextures::Texture& tex = textures.get(f.image);
+    const u32 columns = static_cast<u32>(std::max(f.columns, 1)), rows = static_cast<u32>(std::max(f.rows, 1));
+    // Cell ranges the view touches
+    i32 c0 = 0, c1 = width - 1, r0 = 0, r1 = height - 1;
+    if (view) {
+        const f32 cs = f.cellSize;
+        c0 = std::max(c0, static_cast<i32>(std::floor((view->minX - world.position.x) / cs)));
+        c1 = std::min(c1, static_cast<i32>(std::floor((view->maxX - world.position.x) / cs)));
+        r0 = std::max(r0, static_cast<i32>(std::floor(static_cast<f32>(height) - (view->maxY - world.position.y) / cs)));
+        r1 = std::min(r1, static_cast<i32>(std::floor(static_cast<f32>(height) - (view->minY - world.position.y) / cs)));
+    }
+    for (i32 r = r0; r <= r1; ++r) {
+        for (i32 c = c0; c <= c1; ++c) {
+            const i32 tile = tiles[static_cast<size_t>(r) * static_cast<size_t>(width) + static_cast<size_t>(c)];
+            if (tile < 0) continue;
+            Sprite s;
+            s.position = {world.position.x + static_cast<f32>(c) * f.cellSize, world.position.y + static_cast<f32>(height - 1 - r) * f.cellSize, world.position.z};
+            s.texture = tex.index;
+            spriteCell(s, columns, rows, static_cast<u32>(tile));
+            s.width = f.cellSize;
+            s.height = f.cellSize;
+            s.pivotX = 0.0f; // the cell's bottom left corner
+            s.pivotY = 0.0f;
+            s.color = e.color;
+            s.layer = f.layer;
+            s.flags = f.pixelArt ? kSpritePoint : 0u;
+            out.addSprite(s);
+        }
+    }
 }
 
 } // namespace mealkit::render
