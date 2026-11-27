@@ -1,7 +1,7 @@
 # FuseTag
 
-A game project made with the [MealKit engine](/mnt/drive/MealKit/MealKit-Engine/MealKit/README.md).
-The engine and editor are in `/mnt/drive/MealKit/MealKit-Engine/MealKit`; this folder holds only **game code, assets, and build output**.
+A game project made with the [MealKit engine](/mnt/drive/02_Work/02_MealKit/01_MealKit-Engine/MealKit/README.md).
+The engine and editor are in `/mnt/drive/02_Work/02_MealKit/01_MealKit-Engine/MealKit`; this folder holds only **game code, assets, and build output**.
 
 ## Folders
 
@@ -34,5 +34,5 @@ The engine and editor are in `/mnt/drive/MealKit/MealKit-Engine/MealKit`; this f
 - `source/sim/` is lockstep deterministic code. Follow "Determinism rules" in the engine's `docs/CODING_MODEL.md` (no CRT trig functions, only `Pcg32`, fixed iteration order, new state into `hash()`).
 - Multiplayer connects only when every player has **the same exe, the same scene, and the same model files**. Share the whole shipping folder.
 - The Steam app ID is `STEAM_APP_ID` in `CMakeLists.txt` (default 480 = Valve's test app). With your own app ID, `steam_appid.txt` isn't put in the shipping folder (Steam launches it).
-- Engine changes are made in the engine folder (`/mnt/drive/MealKit/MealKit-Engine/MealKit`). When the engine changes, the editor rebuilds game code.
-- The engine decides the folder layout. `/mnt/drive/MealKit/MealKit-Engine/MealKit\tools\check_layout.ps1 -Project .` finds misplaced files (Export fails with the same check), and the editor warns when opening the project.
+- Engine changes are made in the engine folder (`/mnt/drive/02_Work/02_MealKit/01_MealKit-Engine/MealKit`). When the engine changes, the editor rebuilds game code.
+- The engine decides the folder layout. `/mnt/drive/02_Work/02_MealKit/01_MealKit-Engine/MealKit/tools/check_layout.ps1 -Project .` finds misplaced files (Export fails with the same check), and the editor warns when opening the project.
